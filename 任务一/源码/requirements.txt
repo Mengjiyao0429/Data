@@ -1,0 +1,10 @@
+# 任务一（采集/清洗/去重）仅使用 Python 标准库，无需额外安装。
+# 以下为后续任务（FastAPI 系统、文本挖掘与建模）规划依赖。
+fastapi
+uvicorn[standard]
+pydantic
+requests
+scikit-learn
+numpy
+jieba
+openpyxl
