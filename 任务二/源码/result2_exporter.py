@@ -76,9 +76,40 @@ def load_result1(path=None):
         ws = wb.worksheets[0]
         rows = list(ws.iter_rows(values_only=True))
         header, data = rows[0], rows[1:]
+    head = [str(h).strip() for h in header]
+
+    def col(*names):
+        """按列名取下标（兼容新版分列热度与旧版单列热度），找不到返回 None。"""
+        for n in names:
+            if n in head:
+                return head.index(n)
+        return None
+
+    i_star, i_view = col("星标数", "收藏数"), col("浏览数")
+    i_like, i_cmt, i_fav = col("点赞数"), col("评论数"), col("收藏数")
+    i_heat = col("热度指标（如浏览数、点赞数、讨论数等）", "热度指标", "热度")
+
+    def num(r, i):
+        if i is None or i >= len(r) or r[i] in (None, ""):
+            return ""
+        try:
+            v = float(str(r[i]).replace(",", ""))
+            return str(int(v))
+        except ValueError:
+            return str(r[i]).strip()
+
     records = []
     for i, r in enumerate(data, start=2):
         batch, rid = str(r[0]).strip(), str(r[1]).strip()
+        if i_heat is not None:
+            heat = str(r[i_heat]).strip() if i_heat < len(r) and r[i_heat] else ""
+        else:
+            parts = []
+            for label, idx in (("星标", i_star), ("浏览", i_view), ("点赞", i_like), ("评论", i_cmt)):
+                v = num(r, idx)
+                if v not in ("", "0"):
+                    parts.append(f"{label}{v}")
+            heat = "；".join(parts)
         records.append({
             "row": i,
             "batch_id": batch,
@@ -88,7 +119,9 @@ def load_result1(path=None):
             "url": str(r[3]).strip() if r[3] else "",
             "content_ref": str(r[4]).strip() if r[4] else "",
             "publish_time": str(r[5]) if r[5] else "",
-            "heat": str(r[6]) if r[6] else "",
+            "heat": heat,
+            "stars": num(r, i_star),
+            "views": num(r, i_view),
         })
     return header, records
 
@@ -127,11 +160,23 @@ def _search_meta(rec):
 MIN_BODY_CHARS = int(os.environ.get("TASK2_MIN_BODY_CHARS", "120"))
 
 
+_RAW_CACHE = {}
+
+
+def _read_raw(path):
+    """快照文件读取缓存（同一路径只读一次，5517 条规模下避免重复 IO）。"""
+    if path not in _RAW_CACHE:
+        try:
+            _RAW_CACHE[path] = open(path, encoding="utf-8", errors="ignore").read()
+        except OSError:
+            _RAW_CACHE[path] = ""
+    return _RAW_CACHE[path]
+
+
 def _body_len(path):
     """返回正文的可见字符数（剔除标题、元数据行与空白），用于判断快照是否"信息量足够"。"""
-    try:
-        raw = open(path, encoding="utf-8", errors="ignore").read()
-    except OSError:
+    raw = _read_raw(path)
+    if not raw:
         return 0
     if "## 正文" in raw:
         body = raw.split("## 正文", 1)[1]
@@ -179,9 +224,12 @@ def load_text(rec):
     """内容正文加载。任务一快照缺失时进入降级通道并留痕，不改动任何任务一数据。"""
     snap = _snapshot_path(rec, require_body=True)
     if rec["content_ref"] and os.path.exists(snap):
-        with open(snap, encoding="utf-8", errors="ignore") as f:
-            raw = f.read()
+        raw = _read_raw(snap)
         first = raw.splitlines()[0].lstrip("# ").strip() if raw.splitlines() else ""
+        # 新版任务一快照的元数据与标题在同一行： "# 标题 - 来源：X - 链接：Y - 发布时间：Z - 热度：W ## 正文 …"
+        m_meta = re.match(r"^(.*?)\s+-\s+来源：", first)
+        if m_meta:
+            first = m_meta.group(1).strip()
         # 正文 = 标题下一段（去掉快照尾部追加的"来源/发布时间/热度"采集元数据）
         # 兼容两种快照格式：
         #   (a) 本工具回取格式：标题 + 正文 + "> 来源：… | 时间 | 热度"

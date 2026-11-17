@@ -26,6 +26,7 @@ REVIEW_BAND = 0.08       # 判 0 但置信度高于 0.50-REVIEW_BAND 的边界�
 
 W = {"need": 0.36, "ai_core": 0.26, "feasible": 0.22, "reliability": 0.16}
 DELTA_EXCL = 0.35        # 排除证据对置信度的最大扣减系数
+NEED_GATE = 0.30         # 规则①门槛：真实需求维度低于该值视为"无需求信号"，直接判 0
 GATE_EXCL = 0.50         # 排除强度阈值：≥ 该值直接判 0
 
 # --------------------------------------------------------------------------
@@ -149,6 +150,37 @@ ZH_TUTORIAL_TITLE = [
 ZH_NEWS = [
     (r"报道|据悉|获悉|记者|宣布|官宣|发布会|分析师|融资|投资大会|接受(媒体)?采访|表示|笑称|"
      r"赛迪|证券时报|据.*消息|资本市场|估值|市值|营收|财报", "中文资讯体裁", 0.8),
+]
+
+# 开发者工具/组件供给侧：memory / gateway / registry / skill / toolkit / 组件 / 网关 …
+# 面向工程师复用，不等于"面向终端用户的业务需求"
+DEV_SUPPLY_PATTERNS = [
+    (r"\bmemory (store|system|hub|layer)\b|\bgateway\b|\bregistry\b|\bskill(set|s)?\b|\btoolkit\b|"
+     r"\bplugin\b|\bextension\b|\bboilerplate\b|\btemplate\b|\bwrapper\b|\bsdk\b|"
+     r"记忆(存储|系统|中枢|层)|网关|注册表|技能包|插件|扩展|组件库|模板|脚手架|工具链", "开发者组件/供给侧", 1.0),
+    (r"\bfor (developers|engineers)\b|\bdeveloper (tool|first)\b|面向(开发者|工程师)|\bdevtools?\b",
+     "明确面向开发者", 0.85),
+]
+
+# 模型供给：模型仓库本身不是应用机会（题面③要求"无需自研模型"）
+MODEL_SUPPLY_PATTERNS = [
+    (r"\bmodels?\b.*(checkpoint|weights|inference|serving|repository)|\bpretrained model\b|"
+     r"\bmodel (zoo|hub|card)\b|\bwe release\b|\bopen[- ]?sourc(e|ed) .{0,20}model\b|"
+     r"模型仓库|模型权重|预训练模型发布|开源模型发布|\bfoundation model\b", "模型供给", 1.0),
+    (r"\b(asr|tts|ocr|llm|vlm)\b.*\bmodel\b|\bmodel\b.*\b(asr|tts|ocr|vlm)\b", "模型仓库", 0.55),
+]
+
+# 中文科普/综述/技术方案介绍：介绍"某领域有哪些 AI 应用"不等于提出需求
+ZH_SCIENCE_PATTERNS = [
+    (r"综述|盘点|浅析|应用现状|发展现状|未来方向|研究进展|发展趋势|行业趋势|"
+     r"在.{0,8}领域的关键应用|在.{0,8}中的应用|"
+     r"技术介绍|技术原理|方案介绍|科普|入门|什么是|入门到|知识图谱构建方案|技术解析",
+     "中文科普/综述", 0.9),
+]
+
+# 资讯转述（报道他人观点）不构成需求
+ZH_NEWS_OPINION = [
+    (r"表示|认为|指出|强调|提到|称|报道|获悉|据.{0,6}(消息|报道)|峰会|大会|论坛|发布会", "中文资讯转述", 0.7),
 ]
 
 # 项目/DOC 体裁：仓库介绍、最佳实践、技术选型说明等，缺少可观察的终端用户需求
@@ -350,6 +382,13 @@ def classify_opportunity(title: str, body: str, source_name: str) -> dict:
         if zh_news or re.search(r"专访|采访|表示|报道|分析|观察|评论", text_genre):
             ex = [h for h in ex if not (h["label"] == "营销噱头" and h["strength"] <= 1.0)]
     ex += zh_tut
+    if is_zh:
+        zh_sci = _hits(ZH_SCIENCE_PATTERNS, text_genre)
+        zh_opinion = _hits(ZH_NEWS_OPINION, text_genre)
+        ex += zh_sci
+        # 资讯转述只有在记录确为报道体裁时才算排除，避免误伤正常方案介绍
+        if zh_news and zh_opinion:
+            ex.append({"label": "中文资讯转述", "strength": 0.8, "span": "news"})
     excl = saturate([h["strength"] for h in ex])
     # 注意：下面的 github 折扣会重算 excl，因此"工具型/官网"等后置规则必须改 ex 列表，不能只改 excl
     # 教程词与"提问求解决"共现时，排除强度衰减（如"请问这个教程示例报错怎么修"）；
@@ -381,6 +420,24 @@ def classify_opportunity(title: str, body: str, source_name: str) -> dict:
     if (not github_pre) and re.search(r"官网|our product|pricing|contact sales|免费试用|立即体验|预约演示|咨询客服", low) and re.search(
             r"license|订阅|收费|方案的唯一|唯一方案|最佳选择|行业领先", low):
         ex.append({"label": "商业推广(产品官网)", "strength": 1.0, "span": "官网"})
+    # 开发者组件/模型供给：属"工具/模型供给侧"，面向工程师复用，不是面向终端用户的应用机会
+    dev_supply = _hits(DEV_SUPPLY_PATTERNS, low)
+    model_supply = _hits(MODEL_SUPPLY_PATTERNS, low)
+    supply_sig = saturate([h["strength"] for h in dev_supply])
+    model_sig = saturate([h["strength"] for h in model_supply])
+    # 只有当记录没有明确的业务场景锚定（客服/医疗/法律/电商…）时，才按供给侧排除
+    has_biz_anchor = bool(re.search(
+        r"customer|customer service|客服|patient|医疗|legal|法律|contract|合同|recruit|招聘|e-?commerce|电商|"
+        r"education|教育|logistics|物流|finance|金融|insurance|保险|appointment|预约", low))
+    if dev_supply and supply_sig >= 0.5 and not has_biz_anchor:
+        ex.append({"label": "开发者组件/工具供给", "strength": 1.0, "span": "supply"})
+    # 模型供给：只有原句就是"发布/开源某模型"这类仓库描述，且无业务场景时才算供给
+    model_release = re.search(
+        r"\b(model|models)\b.*\b(release|release\s*d|weights|checkpoint|repo|repository)\b|"
+        r"\b(release|open[- ]?sourc)\w* .{0,25}\b(model|models)\b|模型(仓库|权重|发布)", low)
+    if model_supply and model_sig >= 0.5 and (model_release or not has_biz_anchor):
+        ex.append({"label": "模型供给", "strength": 1.0, "span": "model"})
+
     # 个人/单模块工具型记录：标题与全文只描述一个工具或一句话产品定位，缺少业务痛点与使用场景
     github = "github.com" in low
     # 开源项目记录：需求强度已由 R 侧统一打折，此处不再叠加排除（避免重复计权导致系统性漏判）
@@ -394,6 +451,13 @@ def classify_opportunity(title: str, body: str, source_name: str) -> dict:
 
     # ---------------- ① 真实需求 ----------------
     need = _hits(NEED_PATTERNS, low)
+    # 开发者工程问题（报错/异常/部署失败/版本冲突等）→ 需求信号按"技术问题"处理，不作为业务需求
+    tech_issue = re.search(
+        r"\berror\b|\bexception\b|\btraceback\b|\bfailed\b|\bfails?\b|not working|doesn't work|"
+        r"\bissue\b|\bbug\b|\bhow (do|can|should) i\b|\bwhy (does|is|do)\b|\bi'm trying to\b|"
+        r"\bi am trying to\b|报错|异常|失败|无法|不生效|不工作|怎么(改|修|解决)|为什么", low)
+    if tech_issue:
+        need = [h for h in need if h["strength"] <= 0.5]
     scene = _hits(SCENE_PATTERNS, low)
     if is_zh:
         need += _hits(ZH_NEED_PATTERNS, text)
@@ -428,6 +492,9 @@ def classify_opportunity(title: str, body: str, source_name: str) -> dict:
         need_score *= (1.0 - (1.0 - dev_factor) * dev_sig)
     if is_qa_source and ask:
         need_score = max(need_score, min(1.0, 0.45 + 0.35 * need_sig + 0.2 * scene_sig))
+    if tech_issue:
+        # 有明确业务场景（客服/医疗/电商…）的技术问题保留部分需求证据；纯技术报错压到很低
+        need_score *= 0.62 if has_biz_anchor else 0.28
     # 业务场景与问题表述：需求信号必须锚定在具体问题或业务语境上，不能把"提到某能力"当成"提出需求"
     if need_sig < 0.6 and len(scene) < 2 and not (ask and scene):
         need_score *= 0.75
@@ -513,7 +580,10 @@ def classify_opportunity(title: str, body: str, source_name: str) -> dict:
            + W["feasible"] * feas_score + W["reliability"] * q)
     conf = pos * (1.0 - DELTA_EXCL * excl)
     conf = min(1.0, max(0.0, conf))
-    is_opp = 1 if (gate_ok and not off_domain and not thin and conf >= DECISION_TAU) else 0
+    # 规则①前置门槛：真实需求维度必须成立（有需求信号或已锚定的业务场景），
+    # 否则即便 AI 能力与可落地性很强，也不构成"AI 应用机会"
+    need_ok = need_score >= NEED_GATE
+    is_opp = 1 if (gate_ok and need_ok and not off_domain and not thin and conf >= DECISION_TAU) else 0
     if thin:
         conf = min(conf, DECISION_TAU - 0.05)
     # 输出置信度与判定保持单调：判 1 → ≥0.5 且随证据增强；判 0 → <0.5
@@ -533,6 +603,9 @@ def classify_opportunity(title: str, body: str, source_name: str) -> dict:
     if not gate_ok:
         rule = "④排除情形"
         reason = "命中排除情形（" + "、".join(sorted({h["label"] for h in ex if h["label"]})) + "），按题面规则直接判 0"
+    elif not need_ok:
+        rule = "①缺真实需求"
+        reason = "记录未出现可观察的需求信号，也未锚定到具体业务场景，AI 能力再强也不构成应用机会"
     elif off_domain:
         rule = "②③非AI领域问题"
         reason = "记录属技术实现/调试细节（编译构建、前端渲染、工具链、通用语法等），面向的是开发者而非终端业务用户，AI 不是解决业务问题的手段"
