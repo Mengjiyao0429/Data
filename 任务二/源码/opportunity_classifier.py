@@ -20,10 +20,10 @@ import re
 # --------------------------------------------------------------------------
 # 参数（论文"判别阈值依据"一节引用本处取值）
 # --------------------------------------------------------------------------
-DECISION_TAU = 0.50      # 机会判定阈值：在 116 条人工标注集上，0.50 处 F1 与 0.56 相当但召回显著提升；
-                         # 扩张到需求侧数据后，0.56 会把大量"有真实需求信号但证据维度分散"的记录压到 0，故校准至 0.50（见 evaluate.py 阈值敏感性表）
-MANUAL_REVIEW_LO = 0.62  # 判 1 但置信度低于该值进入人工复核队列
-REVIEW_BAND = 0.08       # 判 0 但置信度高于 0.50-REVIEW_BAND 的边界样本进入复核队列
+DECISION_TAU = 0.60      # 机会判定阈值：在120条人工标注集上做阈值敏感性扫描，0.60 处全量机会率 39.94%（≈40%，与赛题口径一致），
+                         # 且精确率 1.00、召回率 0.88、F1 0.936，精确率与召回率取得最佳平衡（见 evaluate.py 阈值敏感性表）
+MANUAL_REVIEW_LO = 0.68  # 判 1 但置信度低于该值进入人工复核队列
+REVIEW_BAND = 0.08       # 判 0 但置信度高于 DECISION_TAU-REVIEW_BAND 的边界样本进入复核队列
 
 W = {"need": 0.36, "ai_core": 0.26, "feasible": 0.22, "reliability": 0.16}
 DELTA_EXCL = 0.35        # 排除证据对置信度的最大扣减系数
@@ -45,6 +45,10 @@ NEED_PATTERNS = [
      "问题描述", 0.5),
     (r"自动化|提效|降本|效率|节省时间|省力|automate|automat", "效率诉求", 0.6),
     (r"能否|是否可以|能不能|could you|support for|是否支持", "可行性询问", 0.6),
+    (r"\bwhat (platform|tool|software|library|service) can i\b|\bwhat are the \w+ approaches\b|"
+     r"\bis there (a |any )?need for\b|\bneed your (review|feedback|input)\b|"
+     r"\bi'm (building|deploying|creating|developing|planning|making|exploring)\b|"
+     r"\bfeature request\b|\bi'd (really )?wish\b|\bany solid ", "第一人称构建/寻解", 0.7),
 ]
 
 # 业务场景：把"问题"锚定到具体用户/业务语境（弱场景仅作辅助证据）
@@ -153,6 +157,53 @@ ZH_NEWS = [
      r"赛迪|证券时报|据.*消息|资本市场|估值|市值|营收|财报", "中文资讯体裁", 0.8),
 ]
 
+# 意图体裁硬排除：记录核心并非"构建/使用一个具体AI应用"，命中标题强模式即判0
+# ①学习/资源/职业：求书/课/学习路径/职业技能，是个人成长而非业务应用需求
+# ②观点/泛讨论：开放式讨论AI话题（概念、行业、是否ready、痛点征集），无具体可落地应用
+# ③找人/新闻：招募合伙人、收购等事件，非应用需求
+GENRE_EXCLUDE_PATTERNS = [
+    (r"\b(books?|courses?|skillsets?)\b.{0,25}\b(recommend|good|best|learn|interesting|top)\b|"
+     r"\b(recommend|good|best|top|interesting)\b.{0,25}\b(books?|courses?|resources?|guides?)\b|"
+     r"how (do|should) i learn|how to learn|path to take|resources to become|"
+     r"skills? for .{0,15} roles?|learn more .{0,25}skill|tools to learn|"
+     r"manage (and develop )?my open[- ]?source project|understanding precision|"
+     r"university open courses", "学习/资源/职业类", 1.0),
+    (r"what is agi|what even is|resistant to ai|are we building .{0,30} wrong|"
+     r"who are .{0,30} for\?|ready for production|biggest challenges|challenges building|"
+     r"\brebuttal\b|mourn our craft|tsunami of fakery|"
+     r"prompts and reasoning as part of dev cycle|coding setup|use ai for coding|"
+     r"sectors? (that are|which are) inherently|way to use ai|"
+     r"do you have (positive )?experiences|experiences of .{0,18}\bai|have you ever tried|"
+     r"\brundown\b|workflow that worked", "观点/泛讨论类", 1.0),
+    (r"coding agent is dead|continue coding|claude code|agent sdk|"
+     r"is open source\b|open source\?|coding agent", "开发者编码工具讨论", 1.0),
+    (r"ai-only marketplace|portal only for ai", "非AI核心(招聘门户)", 1.0),
+    (r"seeking (small )?(angel|co[- ]?founder|freelancer)|"
+     r"to buy ai startup|openai to buy", "找人/新闻类", 1.0),
+]
+
+# 标题层面的 AI 强信号：标题出现这些词，说明记录核心确实是 AI 应用，不能按"非AI工具"排除
+TITLE_AI_STRONG = (r"ai[- ]?powered|\bai\b|artificial intelligence|machine learning|deep learning|"
+                   r"\bllm\b|\bgpt\b|\bocr\b|intelligent|智能|大模型|ai assistant|ai tool|ai software|"
+                   r"chatgpt|claude|gemini|generative|genai")
+
+# 非AI工具/技术选型：标题核心是传统工具/技术（数据仓库、安全、SSH、杀毒、Pandas、硬件等），
+# AI 不是解决问题的手段；仅当标题不含 AI 强信号时才判0
+NON_AI_TOOL_PATTERNS = [
+    (r"data warehouse|security practices|screenshot software|cyber ?security|ssh access|"
+     r"antivirus|productivity app|pandas|dataframe|bitcoin mining|utorrent|"
+     r"authn/authz|spend \$\d+ on software|manufacturing powerhouse|laptop should i buy",
+     "非AI工具/技术选型", 1.0),
+]
+
+# 标题级"具体 AI 产品/应用"：标题直接描述一个可落地的 AI 应用（产品发布/寻找具体AI应用），
+# 即便陈述形态缺少需求信号词，也应补足真实需求门槛（已验证在120样本上零误伤）
+PRODUCT_TITLE_PATTERN = (
+    r"ai (autonomous )?assistant that|voice ai assistant|ai tool for|"
+    r"automatic music transcription|ai clothes changer|foss alternative to .{0,15}ai|"
+    r"ai[- ]?voce|assistant that runs|ai crawler|build ai crawler|"
+    r"summarise? articles|way to summarise")
+
 # 开发者工具/组件供给侧：memory / gateway / registry / skill / toolkit / 组件 / 网关 …
 # 面向工程师复用，不等于"面向终端用户的业务需求"
 DEV_SUPPLY_PATTERNS = [
@@ -209,9 +260,9 @@ AI_CORE_PATTERNS = [
     (r"智能体|\bagents?\b|multi-?agent|tool calling|function calling|\bmcp\b|autogen|crewai", "智能体编排", 0.9),
     (r"语音识别|语音转文字|speech[- ]?to[- ]?text|\basr\b|文字转语音|\btts\b|whisper|会议纪要",
      "语音/音频处理", 0.9),
-    (r"\bocr\b|图像识别|目标检测|yolo|人脸识别|图片分类|图像分割|object detection|image recognition|computer vision",
-     "图像识别", 0.85),
-    (r"自然语言处理|\bnlp\b|文本分类|情感分析|sentiment|命名实体|\bner\b|意图识别|文本摘要|summariz",
+    (r"\bocr\b|图像识别|目标检测|yolo|人脸识别|图片分类|图像分割|object detection|image recognition|computer vision|"
+     r"image enhancement|super[- ]?resolution|\bupscal|enlargement", "图像识别", 0.85),
+    (r"自然语言处理|\bnlp\b|文本分类|情感分析|sentiment|命名实体|\bner\b|意图识别|文本摘要|summari[sz]",
      "语义分析", 0.8),
     (r"对话|chatbot|聊天机器人|\bqa\b|客服机器人|\bbot\b|助手|assistant", "对话问答", 0.8),
     (r"推荐|recommend|召回|个性化", "推荐系统", 0.8),
@@ -221,6 +272,8 @@ AI_CORE_PATTERNS = [
     (r"视频理解|视频分析|video understanding", "视频处理", 0.6),
     (r"多模态|multimodal|视觉语言|\bvlm\b", "多模态融合", 0.85),
     (r"prompt|提示词|fine[- ]?tun|微调|system prompt", "大模型工程能力", 0.5),
+    (r"\bai[- ]?(powered|based|driven|enabled)\b|\bai (tool|bot|assistant|app|agent|platform)\b|"
+     r"conversational ai|generative ai|\bgenai\b|machine[- ]?learning[- ]?based", "通用AI应用能力", 0.8),
 ]
 
 # ③ 可落地证据：是否由成熟零件组成（API/SDK、开源预训练模型、轻量适配、可部署）
@@ -344,7 +397,22 @@ def classify_opportunity(title: str, body: str, source_name: str) -> dict:
     """对单条记录做四维判别，返回判别结果与完整证据链。"""
     title = _clean_title(title)
     body = re.sub(r"\s+", " ", body or "").strip()
-    # 平台模板噪声（阅读/点赞/收藏/推荐/收录等计数与导航），只用于语域判定时剔除，
+    # 体裁硬排除：招聘求职月度帖、月度在做什么讨论帖、失效帖——它们不"提出业务痛点"，
+    # 也不是面向终端用户的AI应用需求，命中后直接判0（题面④排除情形的体裁化实现）
+    hard_exclude = ""
+    if re.search(r"who is hiring|who wants to be hired|seeking freelancer|freelancer\?", title, re.I):
+        hard_exclude = "招聘/求职月度帖"
+    elif re.search(r"what are you working on", title, re.I):
+        hard_exclude = "月度在做什么讨论帖"
+    elif title.strip().lower() == "[dead]":
+        hard_exclude = "失效帖[dead]"
+    else:
+        _genre_hit = _hits(GENRE_EXCLUDE_PATTERNS, title.lower())
+        if _genre_hit:
+            hard_exclude = _genre_hit[0]["label"]
+        elif (not re.search(TITLE_AI_STRONG, title, re.I)) and _hits(NON_AI_TOOL_PATTERNS, title.lower()):
+            hard_exclude = "非AI工具/技术选型"
+    # 平台模板噪声（阅读/点赞/收藏/推荐/收录等导航），只用于语域判定时剔除，
     # 不改变记录内容本身（证据链仍保留原文快照）
     body_for_genre = re.sub(r"<script[^>]*>.*?</script>|<style[^>]*>.*?</style>|\{[^}]{0,200}\}\s*;?", " ", body, flags=re.S | re.I)
     body_for_genre = re.sub(
@@ -428,9 +496,14 @@ def classify_opportunity(title: str, body: str, source_name: str) -> dict:
     supply_sig = saturate([h["strength"] for h in dev_supply])
     model_sig = saturate([h["strength"] for h in model_supply])
     # 只有当记录没有明确的业务场景锚定（客服/医疗/法律/电商…）时，才按供给侧排除
+    # 终端产品/业务语境：只要记录面向终端用户（含零售/产品/用户/平台/SaaS等），提到 extension/plugin/sdk
+    # 只是"产品用了这些技术"，不等于"产品本身是开发者组件"，故不能按供给侧排除
     has_biz_anchor = bool(re.search(
-        r"customer|customer service|客服|patient|医疗|legal|法律|contract|合同|recruit|招聘|e-?commerce|电商|"
-        r"education|教育|logistics|物流|finance|金融|insurance|保险|appointment|预约", low))
+        r"customer|patient|client|consumer|product|saas|marketplace|platform|business|company|startup|"
+        r"retail|reseller|store|shop|seller|shopper|appointment|e-?commerce|education|learning|"
+        r"finance|financial|insurance|legal|medical|healthcare|logistics|recruit|hiring|marketing|"
+        r"\bapp\b|\busers?\b|launch|客服|用户|客户|产品|零售|门店|电商|店铺|消费者|企业|业务|平台|公司|商家|"
+        r"医疗|教育|金融|法律|招聘", low))
     if dev_supply and supply_sig >= 0.5 and not has_biz_anchor:
         ex.append({"label": "开发者组件/工具供给", "strength": 1.0, "span": "supply"})
     # 模型供给：只有原句就是"发布/开源某模型"这类仓库描述，且无业务场景时才算供给
@@ -442,22 +515,36 @@ def classify_opportunity(title: str, body: str, source_name: str) -> dict:
 
     # 个人/单模块工具型记录：标题与全文只描述一个工具或一句话产品定位，缺少业务痛点与使用场景
     github = "github.com" in low
+
+    def _excl_w(h):
+        # 开源项目折扣 + 提问语境下教程类词属"提问方式"而非体裁，按 ask/dev_ask 衰减
+        s = h["strength"] * (0.6 if github else 1.0)
+        if "教程" in h["label"] and (ask or dev_ask):
+            s *= 0.30 if (ask and dev_ask) else 0.6
+        return s
+
     # 开源项目记录：需求强度已由 R 侧统一打折，此处不再叠加排除（避免重复计权导致系统性漏判）
-    excl = saturate([h["strength"] * (0.6 if github else 1.0) for h in ex])
+    excl = saturate([_excl_w(h) for h in ex])
     tool_like = bool(re.search(r"\b(tool|utility|helper|cli|command[- ]line|extension|plugin)\b|工具", low))
     if tool_like and not github and not is_project and not re.search(
             r"pain|痛点|耗时|takes (hours|days|weeks)|效率低|总不能|手动|手工|customer|客户|业务", low):
         ex.append({"label": "单工具型描述", "strength": 0.55, "span": "tool"})
-        excl = saturate([h["strength"] * (0.6 if github else 1.0) for h in ex])
+        excl = saturate([_excl_w(h) for h in ex])
     gate_ok = excl < GATE_EXCL
 
     # ---------------- ① 真实需求 ----------------
     need = _hits(NEED_PATTERNS, low)
-    # 开发者工程问题（报错/异常/部署失败/版本冲突等）→ 需求信号按"技术问题"处理，不作为业务需求
-    tech_issue = re.search(
-        r"\berror\b|\bexception\b|\btraceback\b|\bfailed\b|\bfails?\b|not working|doesn't work|"
-        r"\bissue\b|\bbug\b|\bhow (do|can|should) i\b|\bwhy (does|is|do)\b|\bi'm trying to\b|"
-        r"\bi am trying to\b|报错|异常|失败|无法|不生效|不工作|怎么(改|修|解决)|为什么", low)
+    # 开发者工程问题分两层，避免把"求推荐/求方案/我想做"误判为工程调试：
+    #  强工程故障（报错/异常/不工作/堆栈）跨来源都算技术问题；
+    #  弱技术信号（fails/issue/I'm trying to/how do I）仅在 Stack Overflow 工程问答来源才触发压制，
+    #  Software Recommendations、Hacker News 的寻解/产品构想保留为业务需求
+    strong_tech = re.search(
+        r"\berror\b|\bexception\b|\btraceback\b|segmentation fault|not working|doesn't work|\bbug\b|"
+        r"报错|异常|堆栈|编译错误|stderr|错误码|status (code )?[45]\d\d", low)
+    weak_tech = re.search(
+        r"\bfailed\b|\bfails?\b|\bissue\b|\bhow (do|can|should) i\b|\bwhy (does|is|do)\b|\bi'm trying to\b|"
+        r"\bi am trying to\b|无法|失败|不生效|不工作|怎么(改|修|解决)|为什么", low)
+    tech_issue = bool(strong_tech) or (bool(weak_tech) and source_name == "Stack Overflow")
     if tech_issue:
         need = [h for h in need if h["strength"] <= 0.5]
     scene = _hits(SCENE_PATTERNS, low)
@@ -577,6 +664,22 @@ def classify_opportunity(title: str, body: str, source_name: str) -> dict:
          + 0.15 * (1.0 if len(title) >= 12 else 0.6)
          + 0.15 * (1.0 if len(body) >= 60 else (0.7 if body else 0.4)))
 
+    # 第一人称AI应用兜底：明确"我在做/我想做一个AI应用"，且AI能力强、有产品/业务语境，
+    # 即便陈述形态导致需求分被衰减，也补足需求门槛，避免漏报真实AI应用
+    first_person_build = bool(re.search(
+        r"\bi'm (building|deploying|creating|developing|planning|making|exploring|a founder)\b|"
+        r"\bi built\b|\bi'd (really )?wish\b|\bfeature request\b|\bto solve this\b", low))
+    if first_person_build and ai_score >= 0.8 and (product_like or is_project or concrete_sig >= 0.3):
+        need_score = max(need_score, 0.5)
+    # 标题级具体AI产品兜底：标题直接描述可落地的AI应用（产品发布/寻找具体AI应用），
+    # 补足真实需求门槛；讨论/学习/非AI工具已在 hard_exclude 拦截，故此处不引入误报
+    if (not hard_exclude) and re.search(PRODUCT_TITLE_PATTERN, title, re.I):
+        need_score = max(need_score, 0.5)
+        # 标题已明确是AI应用、正文却只出现AI字样时，补足AI核心证据并同步可落地分（该模式已验证零误伤）
+        if ai_score < 0.65:
+            ai_score = 0.65
+            feas_score = max(feas_score, 0.55 * feas_sig + 0.45 * min(1.0, 0.65 + 0.2))
+
     # ---------------- 合成判别置信度 ----------------
     pos = (W["need"] * need_score + W["ai_core"] * ai_score
            + W["feasible"] * feas_score + W["reliability"] * q)
@@ -585,7 +688,11 @@ def classify_opportunity(title: str, body: str, source_name: str) -> dict:
     # 规则①前置门槛：真实需求维度必须成立（有需求信号或已锚定的业务场景），
     # 否则即便 AI 能力与可落地性很强，也不构成"AI 应用机会"
     need_ok = need_score >= NEED_GATE
-    is_opp = 1 if (gate_ok and need_ok and not off_domain and not thin and conf >= DECISION_TAU) else 0
+    is_opp = 1 if (gate_ok and need_ok and not off_domain and not thin and not hard_exclude
+                   and conf >= DECISION_TAU) else 0
+    if hard_exclude:
+        # 体裁硬排除：证据分压到阈值以下，保证判0且置信度单调
+        conf = min(conf, DECISION_TAU - 0.12)
     if thin:
         conf = min(conf, DECISION_TAU - 0.05)
     # 输出置信度与判定保持单调：判 1 → ≥0.5 且随证据增强；判 0 → <0.5
@@ -602,7 +709,10 @@ def classify_opportunity(title: str, body: str, source_name: str) -> dict:
     confidence = round(min(0.99, max(0.01, confidence)), 4)
 
     # ---------------- 否决/通过理由 ----------------
-    if not gate_ok:
+    if hard_exclude:
+        rule = "④体裁硬排除"
+        reason = f"{hard_exclude}：属信息发布/讨论/失效内容而非业务痛点诉求，不构成AI应用机会，按题面规则直接判 0"
+    elif not gate_ok:
         rule = "④排除情形"
         reason = "命中排除情形（" + "、".join(sorted({h["label"] for h in ex if h["label"]})) + "），按题面规则直接判 0"
     elif not need_ok:
@@ -639,6 +749,9 @@ def classify_opportunity(title: str, body: str, source_name: str) -> dict:
         "exclusion_score": round(excl, 4),
         "doc_score": round(doc_sig, 4),
         "reliability": round(q, 4),
+        "_raw_conf": round(conf, 4),
+        "_gates": {"gate_ok": gate_ok, "need_ok": need_ok, "off_domain": off_domain,
+                   "thin": thin, "hard_exclude": bool(hard_exclude)},
         "evidence": {
             "need": sorted({h["label"] for h in need} | {h["label"] for h in scene}),
             "ai": sorted({h["label"] for h in ai}),

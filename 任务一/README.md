@@ -3,18 +3,16 @@
 第三届甘肃省大学生数据挖掘挑战赛（本科组）赛题《AI 应用场景的智能挖掘与机会评估系统》。
 本文件夹完整保存任务一的目标、方法、原始数据、正文快照、结果与全部源码。
 
-> **【v3 数据口径 · 以此为准】** 当前 result1 为需求导向采集的 **1641 条 / 8 批次 / 3 类公开源
-> （Hacker News、Stack Overflow、Software Recommendations）**，正文快照 1641 个。
-> 由 `collect_demand_oriented.py` 生成。下方"完成结果"中 8038 条等为 v2 历史口径，详见仓库根
-> [`数据重构说明_v3.md`](../数据重构说明_v3.md)。
+> **【当前数据口径 · 以此为准】** result1 为需求导向采集的 **4322 条 / 8 批次（B01–B08）/
+> 4 类公开源（Hacker News、Stack Overflow、Software Recommendations、GitHub）**，
+> 正文快照 4322 个。result1.csv 与 result1.xlsx 内容完全一致。
 
 ## 一、任务目标
 
 围绕“AI 应用场景”主题，实现多源公开渠道的数据采集、整理、清洗与去重，形成统一规范、
 可直接用于后续分析的记录，并保证每条结果可溯源至原始采集记录。对应赛题三项要求：
 
-1. **多源采集与整理**：从多个公开渠道采集近期热门内容，对齐为统一字段
-   （采集批次号、记录编号、来源网站名称、来源链接、内容、发布时间、热度指标），
+1. **多源采集与整理**：从多个公开渠道采集近期热门内容，对齐为统一字段，
    以“采集批次号-记录编号”唯一标识。
 2. **文本清洗**：去除 URL 与渠道噪声、解码 HTML 实体、规范化空白与标点、处理缺失值，
    清洗后正文以快照形式留存。
@@ -23,45 +21,38 @@
 
 ## 二、完成结果
 
-- 最终保留 **8038 条**真实有效记录，分 **8 个采集批次**，全部发布于 **2023-01-01 ~ 2026-11-18**。
-- 结构：需求侧（问答/讨论/教程，真实用户表达）**4340 条（54.0%）**、供给侧（GitHub 仓库自述）**3698 条（46.0%）**，
-  修正了早期"GitHub 占 67%、需求侧仅 33%"的失衡；全量文本 AI 主题关键词命中 **6042 条（75.2%）**。
-- 正文以英文技术讨论为主，中文记录集中在 CSDN（B05）、V2EX（B08）与国内科技媒体批次。
+- 最终保留 **4322 条**真实有效记录，分 **8 个采集批次**，发布时间跨度 **2007-10-28 ~ 2026-11-18**。
+- 以需求侧真实用户表达（问答、讨论、工具寻解、产品发布）为主体，来源结构如下：
 
-| 批次 | 来源构成 | 条数 |
-|---|---|---|
-| B01 | GitHub（按星标三等分之第一部分） | 1233 |
-| B02 | GitHub（按星标三等分之第二部分） | 1233 |
-| B03 | GitHub（按星标三等分之第三部分） | 1232 |
-| B04 | Stack Overflow（含真实正文） | 1256 |
-| B05 | 中文内容：CSDN 477 + 国内站点 44 + 科技媒体 RSS 42 | 563 |
-| B06 | Stack Overflow 需求侧补采（20 个 AI 主题标签 × withbody，2023-01 起） | 1596 |
-| B07 | Hacker News 需求侧补采（AI 话题评论，2024-01 起，已剔除招聘串/失效帖） | 911 |
-| B08 | V2EX 需求侧补采（hot + openai/programmer/qna/python/share/ideas 节点） | 14 |
+  | 来源网站 | 记录数 | 占比 |
+  |---|---|---|
+  | Hacker News | 3861 | 89.3% |
+  | Stack Overflow | 220 | 5.1% |
+  | Software Recommendations | 220 | 5.1% |
+  | GitHub | 21 | 0.5% |
 
-- 来源分布：GitHub 3698、Stack Overflow 2852、Hacker News 911、CSDN 477、IT之家 30、V2EX 14、
-  36氪 10、阿里云开发者社区 10、InfoQ 中国 9、腾讯新闻 8、新浪科技 7、
-  中国医药创新促进会 5、中国互联网协会 4、量子位 3。
-- 数据量扩容（相对首版 329 条 → 5517 条 → 8038 条）：GitHub 单页上限由 30 提升到 100 并翻 4 页，
-  Stack Overflow 由 30 提升到 100 且使用 `withbody` 取真实正文，CSDN 走搜索接口翻页，
-  新增科技媒体 RSS 批次；本轮再按赛题"多元公开数据源 + 需求侧"口径补采 B06–B08（源码 `源码/collect_ai_demand.py`、
-  入库 `源码/merge_ai_demand.py`，原始接口返回存于 `原始数据/B0*_raw.json`，可逐条回溯）。
+- 各批次记录数：
+
+  | 批次 | 条数 | 批次 | 条数 |
+  |---|---|---|---|
+  | B01 | 727 | B05 | 443 |
+  | B02 | 853 | B06 | 443 |
+  | B03 | 527 | B07 | 384 |
+  | B04 | 522 | B08 | 423 |
 
 ## 三、result1 表格格式
 
-表头与赛题 PDF「表1 result1.csv 表格样式」一致：
+表头与赛题 PDF「表1 result1.csv 表格样式」一致（11 列）：
 
 ```
 采集批次号, 记录编号, 来源网站名称, 来源链接, 内容, 发布时间, 星标数, 浏览数, 点赞数, 评论数, 收藏数
 ```
 
-- “内容”列使用相对路径 `./text/{批次}_{编号}.md`，指向同目录下 `text/` 子文件夹中的正文快照。
+- “内容”列使用相对路径 `./text/{批次}_{编号}.md`，指向同目录下 `text/` 子文件夹中的正文快照（4322/4322 全部可定位）。
 - 各来源按可获取到的真实热度填对应列，其余列留空：
   - GitHub → 星标数
-  - Stack Overflow → 浏览数 / 点赞数 / 评论数（负分为真实被点踩值）
-  - CSDN → 浏览数 / 点赞数 / 评论数
-  - 36氪、腾讯新闻 → 点赞数 / 评论数 / 收藏数
-  - 阿里云、医药促进会 → 浏览数
+  - Stack Overflow → 浏览数 / 点赞数 / 评论数
+  - Hacker News、Software Recommendations → 对应可获取的互动列
 
 ## 四、目录结构
 
@@ -69,41 +60,36 @@
 任务一/
 ├── README.md            # 本说明
 ├── 结果/
-│   ├── result1.csv      # 最终结果（utf-8-sig，Excel 可直接打开，8038 条）
-│   ├── result1.xlsx     # 同内容 Excel 版（8038 条）
-│   └── text/            # 8038 个清洗后正文 .md，文件名与 result1“内容”列一一对应
+│   ├── result1.csv      # 最终结果（utf-8-sig，Excel 可直接打开，4322 条）
+│   ├── result1.xlsx     # 同内容 Excel 版（4322 条，与 csv 零差异）
+│   └── text/            # 4322 个清洗后正文 .md，文件名与 result1“内容”列一一对应
 ├── 原始数据/            # 原始采集 JSON（API/RSS 与浏览器采集的原始字段）
-│   ├── bulk_github.json / bulk_so.json / bulk_csdn.json / bulk_rss.json
-│   └── raw_B01.json、browser_36kr.json、browser_aliyun.json、browser_csdn.json 等
 └── 源码/
     ├── app/
     │   ├── config.py    # 采集与去重参数、阈值
     │   ├── labels.py    # 官方附件1：16 功能 / 30 行业标签及关键词
-    │   ├── sources.py   # 官方附件2：20 个数据源及采集配置
+    │   ├── sources.py   # 官方附件2：数据源及采集配置
     │   └── pipeline/
     │       ├── collector.py  # 多源采集（API/RSS、时间窗、过滤）
     │       ├── cleaner.py    # 文本清洗（HTML 实体解码、去噪、规范化）
-    │       └── dedup.py      # MD5 + Jaccard 去重
-    ├── bulk_collect.py  # 扩容采集：GitHub/SO/CSDN 翻页 + RSS
-    ├── build_dataset2.py # 清洗、三级去重、5 批次编号、导出图片样式 result1 与快照
-    ├── run_task1.py     # 首版 API/RSS 采集编排
-    ├── merge_task1.py   # 浏览器记录转换与正文剥离
-    ├── rebuild_batches.py  # 首版批次重组与独立编号
+    │       └── dedup.py      # MD5 + SimHash 去重
+    ├── collect_demand_oriented.py  # 需求导向采集（当前口径主流程）
+    ├── build_dataset.py / build_dataset2.py  # 清洗、去重、编号与导出
+    ├── bulk_collect.py / collect_expand.py   # 翻页扩容采集
+    ├── collect_ai_demand.py / merge_ai_demand.py  # 需求侧补采与入库
+    ├── run_task1.py / merge_task1.py / rebuild_batches.py
+    ├── sync_task1_outputs.py / rebuild_downstream.py
     ├── requirements.txt
-    └── README.md        # 原工程项目说明
+    └── README.md
 ```
 
 ## 五、如何验证真实性
 
 1. 用浏览器打开 result1 中任意“来源链接”，页面真实存在，标题/正文与“内容”列指向的快照一致。
 2. 热度指标（星标、点赞、评论、收藏、浏览）均为接口或页面返回的真实数值，未人工编造。
-3. “内容”列的 `./text/...` 路径在本文件夹内可直接定位到对应快照文件（8038/8038 全部可点）。
-4. 链接有效性抽检：36氪、阿里云、腾讯新闻、新浪科技、医药促进会、互联网协会、IT之家、
-   InfoQ、量子位均返回 HTTP 200；GitHub 可在浏览器或 `api.github.com/repos/<full_name>`
-   直接核对仓库存在。其中星标数最高的记录（如 `morluto/rea` 465507、`obra/superpowers` 319036、
-   `firecrawl/firecrawl` 202522）已用该接口逐条核实，确为真实数值，非采集异常。
-5. 反爬说明：Stack Overflow、CSDN 对脚本直接请求分别返回 403 / 521（站点防护），
-   真实浏览器可正常访问，属反爬拦截而非链接失效，验证时请用浏览器打开。
+3. “内容”列的 `./text/...` 路径在本文件夹内可直接定位到对应快照文件（4322/4322 全部可点）。
+4. csv 与 xlsx 已逐行核对，行数与内容零差异。
+5. 反爬说明：部分站点对脚本直接请求有防护，真实浏览器可正常访问，属反爬拦截而非链接失效，验证时请用浏览器打开。
 
 ## 六、采集合规
 

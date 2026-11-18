@@ -27,23 +27,24 @@ FUNCTION_PATTERNS = {
         (r"图像|图片|photo|vision|视觉|摄像头|截图", 0.45),
     ],
     "语音处理": [
-        (r"语音|asr|speech|录音|会议纪要|转写|转录|podcast|字幕|tts|朗读|播客", 1.0),
-        (r"音频|audio|声音|voice|听写", 0.7),
+        (r"语音|asr|speech|录音|会议纪要|转写|转录|podcast|字幕|tts|朗读|播客|voice", 1.0),
+        (r"音频|audio|声音|听写", 0.7),
     ],
     "文本生成": [
         (r"生成|写作|写文章|文案|summary|摘要|报告|文章|输出文本|创作|写稿|content generation|rewrite|改写", 0.9),
         (r"写|draft|compose", 0.4),
     ],
     "对话问答": [
-        (r"对话|问答|chatbot|客服|聊天|助手|assistant|机器人|bot|question answering|问答系统", 1.0),
-        (r"提问|answer|回答|咨询", 0.5),
+        (r"对话|问答|chatbot|客服|聊天|question answering|问答系统", 1.0),
+        # assistant/助手/bot 是产品"形态"而非具体功能（任何产品都能叫 assistant），降为弱词，避免单独决定分类
+        (r"助手|assistant|机器人|\bbot\b|提问|answer|回答|咨询", 0.5),
     ],
     "推荐系统": [
         (r"推荐|recommend|recall|召回|个性化|personalized|榜单", 1.0),
         (r"用户画像|ranking|排序", 0.5),
     ],
     "知识检索": [
-        (r"检索|知识库|rag|向量|embedding|知识图谱|文档查询|语义检索|检索增强|knowledge base|retrieval|faq", 1.0),
+        (r"检索|知识库|rag|向量|embedding|知识图谱|文档查询|语义检索|检索增强|knowledge base|retrieval|faq|memory|记忆", 1.0),
         (r"搜索|search|库", 0.5),
     ],
     "数据挖掘": [
@@ -55,19 +56,22 @@ FUNCTION_PATTERNS = {
         (r"图片和文字|语音和文字", 0.6),
     ],
     "智能体编排": [
-        (r"智能体|agent|多智能体|multi-agent|工作流编排|tool calling|autogen|crewai|mcp|planning", 1.0),
+        (r"智能体|agent|多智能体|multi-agent|工作流编排|tool calling|autogen|crewai|mcp|planning|"
+         r"autonomous|sidekick|co-?pilot|自主", 1.0),
         (r"编排|orchestrat|自动化助手", 0.6),
     ],
     "自动化流程": [
-        (r"自动化|automat|rpa|批量处理|批处理|定时任务|workflow|流程|pipeline|流水线|cron", 1.0),
-        (r"脚本|script|任务", 0.4),
+        (r"自动化|automation|automate|automated|rpa|批量处理|批处理|定时任务|流水线|cron", 1.0),
+        # workflow/流程/pipeline 是宽泛过程词，降为弱词，避免压过具体功能
+        (r"workflow|流程|pipeline|脚本|script|任务", 0.45),
     ],
     "预测分析": [
         (r"预测|forecast|风险|预警|异常检测|anomaly|趋势|评估模型|预测模型|信用|风控|分诊", 1.0),
         (r"预测性|不确定", 0.4),
     ],
     "审核审查": [
-        (r"审核|审查|审核合规|违规|内容安全|敏感|风控审核|质检|审计|审查|举报|rating|moderation|content filter", 1.0),
+        (r"审核|审查|审核合规|违规|内容安全|敏感|风控审核|质检|审计|审查|举报|rating|moderation|content filter|"
+         r"vulnerabilit|漏洞", 1.0),
         (r"检查|检测|review", 0.5),
     ],
     "搜索匹配": [
@@ -82,7 +86,7 @@ FUNCTION_PATTERNS = {
         (r"视频", 0.7),
     ],
     "语义分析": [
-        (r"情感分析|语义|分类|意图|情感|实体|ner|sentiment|文本分类|intent|纠错|抽取|标签|理解", 0.9),
+        (r"情感分析|语义|分类|意图|情感|实体|\bner\b|sentiment|文本分类|intent|纠错|抽取|标签|理解", 0.9),
         (r"nlp|自然语言处理|文本|language", 0.6),
     ],
 }

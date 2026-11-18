@@ -128,7 +128,7 @@ def main():
     # ---- 错误分析 ----
     lines.append("\n## 二、错误案例分析\n")
     lines.append("### 误报（系统判 1、人工判 0）\n")
-    fps = [(k, r) for k, r in zip(keys, gold_rows) if float(res[k]["机会置信度"]) >= 0.5 and int(r["人工是否机会(0/1)"]) == 0]
+    fps = [(k, r) for k, r in zip(keys, gold_rows) if int(res[k]["是否构成机会"]) == 1 and int(r["人工是否机会(0/1)"]) == 0]
     lines.append("| 记录 | 置信度 | 系统理由 | 人工备注 |")
     lines.append("|---|---|---|---|")
     for k, r in fps[:10]:
@@ -137,7 +137,7 @@ def main():
     if len(fps) > 10:
         lines.append(f"\n（其余 {len(fps)-10} 条误报见 result2.csv 与 task2_evidence.jsonl）")
     lines.append("\n### 漏报（系统判 0、人工判 1）\n")
-    fns = [(k, r) for k, r in zip(keys, gold_rows) if float(res[k]["机会置信度"]) < 0.5 and int(r["人工是否机会(0/1)"]) == 1]
+    fns = [(k, r) for k, r in zip(keys, gold_rows) if int(res[k]["是否构成机会"]) == 0 and int(r["人工是否机会(0/1)"]) == 1]
     lines.append("| 记录 | 置信度 | 系统理由 | 人工备注 |")
     lines.append("|---|---|---|---|")
     for k, r in fns[:10]:
