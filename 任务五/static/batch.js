@@ -4,14 +4,13 @@
 
   const $ = (s) => document.querySelector(s);
   const el = (id) => document.getElementById(id);
-  const role = () => localStorage.getItem('t5_role') || 'requester';
 
   const S = { bid: null, data: null, timer: null, detailCid: null, proposal: null };
   const PAL = ['#2E5C8A', '#4F81BD', '#7BA7CD', '#3F9DB3', '#7BA24A', '#E8894A', '#C0504D'];
 
   async function api(path, opts) {
     const o = Object.assign({ headers: {} }, opts || {});
-    o.headers = Object.assign({ 'Content-Type': 'application/json', 'X-Role': role() }, o.headers);
+    o.headers = Object.assign({ 'Content-Type': 'application/json' }, o.headers);
     const res = await fetch(path, o);
     let d = {};
     try { d = await res.json(); } catch (e) { d = { error: '响应解析失败' }; }
@@ -196,21 +195,24 @@
     if (typeof echarts === 'undefined') return;
     const box = el('bChartFunnel');
     const c = echarts.getInstanceByDom(box) || echarts.init(box);
+    const t = m.total_records || 1;
+    const rOpp = m.total_opportunities / t * 100;
+    const rClu = m.total_opportunities ? m.clusters / m.total_opportunities * 100 : 0;
     c.setOption({
-      color: PAL,
-      tooltip: { trigger: 'item', formatter: '{b}<br/>{c} 条' },
-      series: [{
-        type: 'funnel', left: '8%', right: '34%', top: 18, bottom: 18, gap: 6, minSize: '14%',
-        label: { position: 'right', color: '#2E5C8A', fontSize: 12, fontWeight: 600,
-          formatter: (p) => p.name + '：' + p.value.toLocaleString() },
-        labelLine: { length: 10, lineStyle: { color: '#9dbfdc' } },
-        itemStyle: { borderWidth: 0 },
-        data: [
-          { name: '采集清洗去重', value: m.total_records },
-          { name: 'AI 应用机会', value: m.total_opportunities },
-          { name: '机会主题簇', value: m.clusters },
-        ],
-      }],
+      tooltip: { trigger: 'item', formatter: (p) => `${p.seriesName}<br/>${p.value.toFixed(1)}%` },
+      legend: { bottom: 0, itemWidth: 12, itemHeight: 8, textStyle: { fontSize: 10, color: '#5b6b7c' } },
+      series: [
+        { name: '机会占比', type: 'pie', radius: ['58%', '78%'], center: ['50%', '44%'], silent: true,
+          label: { show: false }, labelLine: { show: false },
+          data: [{ value: rOpp, itemStyle: { color: '#5C9E6E' } },
+                 { value: 100 - rOpp, itemStyle: { color: '#eef2f7' } }] },
+        { name: '簇覆盖率', type: 'pie', radius: ['34%', '52%'], center: ['50%', '44%'],
+          label: { show: true, position: 'center', formatter: () => `{a|${rOpp.toFixed(1)}%}\n{b|机会占比}`,
+            rich: { a: { fontSize: 24, fontWeight: 700, color: '#2E5C8A', lineHeight: 30 },
+                    b: { fontSize: 11, color: '#5b6b7c' } } },
+          data: [{ value: rClu, itemStyle: { color: '#4F81BD' } },
+                 { value: 100 - rClu, itemStyle: { color: '#eef2f7' } }] },
+      ],
     }, true);
   }
 

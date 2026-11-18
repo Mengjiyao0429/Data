@@ -4,7 +4,7 @@
 
   const state = {
     meta: null, clusters: [], filters: null, settings: null, stats: null,
-    role: localStorage.getItem('t5_role') || 'requester',
+    me: null,
     checked: new Set(), current: null, proposal: null, charts: {}, chartsReady: false,
   };
 
@@ -13,10 +13,11 @@
 
   async function api(path, opts) {
     const o = Object.assign({ headers: {} }, opts || {});
-    o.headers = Object.assign({ 'Content-Type': 'application/json', 'X-Role': state.role }, o.headers);
+    o.headers = Object.assign({ 'Content-Type': 'application/json' }, o.headers);
     const res = await fetch(path, o);
     let data = {};
     try { data = await res.json(); } catch (e) { data = { error: '响应解析失败' }; }
+    if (res.status === 401 && data.need_login) { location.href = '/login'; throw new Error('未登录'); }
     if (!res.ok) throw new Error(data.error || ('HTTP ' + res.status));
     return data;
   }
@@ -66,7 +67,7 @@
   }
 
   /* ---------------- 页面切换 ---------------- */
-  const PAGES = { new: '需求发起', overview: '概览看板', batch: '批次分析', select: '机会选取', library: '策划案库', settings: '系统设置' };
+  const PAGES = { new: '需求发起', overview: '概览看板', insight: '数据分析', batch: '批次分析', select: '机会选取', ask: '智能问答', library: '策划案库', settings: '系统设置' };
   function showPage(name) {
     document.querySelectorAll('.nav a').forEach((a) => a.classList.toggle('active', a.dataset.page === name));
     Object.keys(PAGES).forEach((k) => el('page-' + k).classList.toggle('hidden', k !== name));
@@ -79,21 +80,20 @@
     a.addEventListener('click', () => { location.hash = a.dataset.page; showPage(a.dataset.page); });
   });
 
-  /* ---------------- 角色 ---------------- */
-  el('roleSel').value = state.role;
-  el('roleSel').addEventListener('change', (e) => {
-    state.role = e.target.value;
-    localStorage.setItem('t5_role', state.role);
-    updateRoleNotice();
-    toast(state.role === 'decision' ? '已切换为决策者' : '已切换为需求发起者');
-  });
-  function updateRoleNotice() {
-    const n = el('roleNotice');
-    n.textContent = state.role === 'decision'
+  /* ---------------- 会话身份（服务端下发，不可伪造） ---------------- */
+  function applyMe(me) {
+    state.me = me;
+    const isDecision = me && me.role === 'decision';
+    el('userPill').textContent = me ? ((me.display || me.username) + (isDecision ? ' · 决策者' : ' · 需求发起者')) : '未登录';
+    el('roleNotice').textContent = isDecision
       ? '当前角色为「决策者」：可修改模型配置、查看审计日志，也可选取机会并生成策划案。'
       : '当前角色为「需求发起者」：可浏览、选取机会、生成策划案；系统配置仅决策者可修改。';
-    n.className = 'notice' + (state.role === 'decision' ? ' blue' : '');
+    el('roleNotice').className = 'notice' + (isDecision ? ' blue' : '');
   }
+  el('btnLogout').addEventListener('click', async () => {
+    try { await api('/api/logout', { method: 'POST' }); } catch (e) {}
+    location.href = '/login';
+  });
 
   /* ---------------- 概览图表 ---------------- */
   const PALETTE = ['#2E5C8A', '#4F81BD', '#7BA7CD', '#3F9DB3', '#7BA24A', '#E8894A', '#C0504D', '#8AA0B6'];
@@ -105,24 +105,24 @@
     const m = state.meta;
 
     const funnel = echarts.init(el('chartFunnel'));
+    const t = m.total_records || 1;
+    const rOpp = m.total_opportunities / t * 100;
+    const rClu = m.total_opportunities ? m.clusters / m.total_opportunities * 100 : 0;
     funnel.setOption({
-      color: PALETTE,
-      tooltip: { trigger: 'item', formatter: '{b}<br/>{c} 条' },
-      series: [{
-        type: 'funnel', left: '6%', right: '30%', top: 18, bottom: 18, sort: 'descending', gap: 6,
-        minSize: '12%',
-        label: {
-          position: 'right', color: '#2E5C8A', fontSize: 12, fontWeight: 600,
-          formatter: (p) => p.name + '：' + p.value.toLocaleString() + ' 条',
-        },
-        labelLine: { length: 12, lineStyle: { color: '#9dbfdc' } },
-        itemStyle: { borderWidth: 0 },
-        data: [
-          { name: '采集清洗去重', value: m.total_records },
-          { name: 'AI 应用机会', value: m.total_opportunities },
-          { name: '机会主题簇', value: m.clusters },
-        ],
-      }],
+      tooltip: { trigger: 'item', formatter: (p) => `${p.seriesName}<br/>${p.value.toFixed(1)}%` },
+      legend: { bottom: 0, itemWidth: 12, itemHeight: 8, textStyle: { fontSize: 10, color: '#5b6b7c' } },
+      series: [
+        { name: '机会占比', type: 'pie', radius: ['58%', '78%'], center: ['50%', '44%'], silent: true,
+          label: { show: false }, labelLine: { show: false },
+          data: [{ value: rOpp, itemStyle: { color: '#5C9E6E' } },
+                 { value: 100 - rOpp, itemStyle: { color: '#eef2f7' } }] },
+        { name: '簇覆盖率', type: 'pie', radius: ['34%', '52%'], center: ['50%', '44%'],
+          label: { show: true, position: 'center', formatter: () => `{a|${rOpp.toFixed(1)}%}\n{b|机会占比}`,
+            rich: { a: { fontSize: 26, fontWeight: 700, color: '#2E5C8A', lineHeight: 32 },
+                    b: { fontSize: 11, color: '#5b6b7c' } } },
+          data: [{ value: rClu, itemStyle: { color: '#4F81BD' } },
+                 { value: 100 - rClu, itemStyle: { color: '#eef2f7' } }] },
+      ],
     });
     state.charts.funnel = funnel;
 
@@ -322,9 +322,9 @@
         '<th style="width:80px">来源</th><th style="width:56px">热度</th></tr></thead><tbody>' + ev + '</tbody></table>' +
         '<div class="sec-t">评分解释</div>' +
         '<p style="font-size:12px;color:#5b6b7d;line-height:1.8">' +
-        '多源指向度 = 100 × min(1, (来源数−1)/3)：多源共同指向说明需求可信；<br/>' +
-        '记录规模 = 100 × 簇内记录数 / 最大簇记录数；<br/>' +
-        '商业信号 = 100 × (0.6 × 热度归一 + 0.4 × 跨批次持续性)。</p>';
+        '多源指向度 = 100 × min(1, 来源数/14)：覆盖来源种类越多，需求越可信；<br/>' +
+        '记录规模 = 100 × min(1, 簇内记录数/100)：固定基准，跨批可比；<br/>' +
+        '商业信号 = 0.7×生均互动热度 + 0.3×需求置信度（置信度经金标 isotonic 校准）。</p>';
       el('drawer').classList.add('open');
     } catch (e) { toast('加载详情失败：' + e.message); }
   }
@@ -440,7 +440,6 @@
     el('sTemp').value = s.temperature || '0.4';
     el('sMaxTok').value = s.max_tokens || '2000';
     el('sTimeout').value = s.timeout || '60';
-    updateRoleNotice();
   }
 
   el('btnSave').addEventListener('click', async () => {
@@ -479,6 +478,9 @@
   /* ---------------- 启动 ---------------- */
   async function boot() {
     try {
+      const me = await api('/api/me');
+      if (!me.authenticated) { location.href = '/login'; return; }
+      applyMe(me.user);
       const [b, h] = await Promise.all([api('/api/bootstrap'), fetch('/health').then((r) => r.json())]);
       state.meta = b.meta;
       state.clusters = b.clusters;

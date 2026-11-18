@@ -19,11 +19,21 @@ import json
 import math
 import os
 import re
+import sys
 import time
 from collections import Counter, defaultdict
 from datetime import datetime
 
 from . import sources
+
+# 统一算法口径：复用 common.analysis（与任务三/四同一实现）
+_REPO = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+if _REPO not in sys.path:
+    sys.path.insert(0, _REPO)
+try:
+    from common import analysis as shared
+except Exception:  # noqa: BLE001
+    shared = None
 
 BASE = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 BATCH_ROOT = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "批次")
@@ -61,10 +71,19 @@ def cached(name):
 def preload():
     _load("opportunity_classifier")
     _load("category_classifier")
+    _load("ml_enhance")
 
 
 # ---------------- 批次编号 ----------------
+_BID_LOCK = __import__("threading").Lock()
+
+
 def next_batch_id():
+    with _BID_LOCK:
+        return _next_batch_id_unlocked()
+
+
+def _next_batch_id_unlocked():
     used = set()
     r1 = os.path.join(BASE, "任务一", "结果", "result1.csv")
     if os.path.exists(r1):
@@ -190,7 +209,8 @@ def tokenize(text):
 
 
 def cluster_opportunities(items):
-    """items: [{title, body, func, industry, ...}] → 簇列表（独立于其它批次）。"""
+    """items: [{title, body, func, industry, ...}] → 簇列表（独立于其它批次）。
+    优先使用共享引擎（与任务三/四同口径），缺失时回退内置实现。"""
     import numpy as np
     from sklearn.cluster import KMeans
     from sklearn.decomposition import TruncatedSVD
@@ -200,6 +220,13 @@ def cluster_opportunities(items):
     n = len(items)
     if n == 0:
         return [], {"k": 0, "silhouette": 0.0, "vectors": 0}
+    if shared is not None:
+        cs, info = shared.cluster_items(items, min_df=1, svd_dim=40, k_min=2, k_max=10)
+        out = []
+        for c in cs:
+            out.append({"cid": c["cid"], "idx": c["idx"], "terms": c["terms"],
+                        "func": c["func"], "industry": c["industry"], "name": c["name"]})
+        return out, {"k": info["k"], "silhouette": info["silhouette"], "vectors": info["vectors"]}
     texts = [(it["title"] + " " + it["body"][:1200]) for it in items]
     vec = TfidfVectorizer(tokenizer=tokenize, lowercase=True, min_df=1, max_df=0.6,
                           sublinear_tf=True, token_pattern=None)
@@ -280,19 +307,25 @@ def cluster_opportunities(items):
 
 # ---------------- 价值评估 ----------------
 def value_scores(clusters, batch_span_days):
-    max_src = max([len({m["source"] for m in c["members"]}) for c in clusters] + [1])
-    max_size = max([len(c["members"]) for c in clusters] + [1])
-    max_heat = max([sum(m["heat"] for m in c["members"]) for c in clusters] + [1])
+    """与任务四同口径：固定基准 + 生均热度，跨批次可比。"""
+    import math as _m
+    fixed_src = getattr(shared, "FIXED_SRC", 14.0)
+    fixed_size = getattr(shared, "FIXED_SIZE", 100.0)
+    fixed_heat = getattr(shared, "FIXED_HEAT", 200000.0)
     for c in clusters:
-        n_src = len({m["source"] for m in c["members"]})
-        src = 100.0 * n_src / max_src
-        size = 100.0 * len(c["members"]) / max_size
-        heat = sum(m["heat"] for m in c["members"])
-        heat_s = 100.0 * math.log1p(heat) / math.log1p(max_heat)
-        days = sorted(m["day"] for m in c["members"] if m["day"])
+        n_src = len({m["source"] for m in c["members"] if m.get("source")})
+        n_size = len(c["members"])
+        heats = [float(m.get("heat", 0) or 0) for m in c["members"]]
+        heat = sum(heats)
+        mean_heat = heat / max(1, n_size)
+        heat_s = min(100.0, 100.0 * _m.log1p(mean_heat) / _m.log1p(fixed_heat))
+        confs = [float(m.get("confidence", 0.5) or 0.5) for m in c["members"]]
+        conf_s = 100.0 * (sum(confs) / max(1, n_size))
+        biz = 0.7 * heat_s + 0.3 * conf_s
+        src = min(100.0, 100.0 * n_src / fixed_src)
+        size = min(100.0, 100.0 * n_size / fixed_size)
+        days = sorted(m["day"] for m in c["members"] if m.get("day"))
         span = (days[-1] - days[0]).days if len(days) >= 2 else 0
-        persist = 100.0 * min(1.0, span / max(30.0, batch_span_days))
-        biz = 0.6 * heat_s + 0.4 * persist
         c["dims"] = {"src": round(src, 1), "size": round(size, 1), "biz": round(biz, 1)}
         c["heat_sum"] = heat
         c["n_src"] = n_src
@@ -381,14 +414,21 @@ def run_batch(bid, requirement, log=print, proxy=None, raw=None):
     for r in records:
         d = oc.classify_opportunity(r["title"], r["body"], r["source"])
         is_opp = 1 if d["is_opportunity"] else 0
+        # 用金标校准后的集成概率作为置信度（修复非单调）
+        try:
+            ml = _load("ml_enhance")
+            mp = ml.ml_probability(r["title"], r["body"])
+            conf_final = ml.ensemble(d["confidence"], mp)
+        except Exception:  # noqa: BLE001
+            conf_final = d["confidence"]
         cat = cc.classify_category(r["title"], r["body"]) if is_opp else {"function": "", "industry": ""}
         rows2.append({
             "采集批次号": bid, "记录编号": r["sid"], "是否构成机会": is_opp,
-            "机会置信度": "%.4f" % d["confidence"],
+            "机会置信度": "%.4f" % conf_final,
             "功能类别": cat.get("function", ""), "所属行业": cat.get("industry", ""),
         })
         if is_opp:
-            opps.append({**r, "confidence": d["confidence"], "rule": d["decision_rule"],
+            opps.append({**r, "confidence": conf_final, "rule": d["decision_rule"],
                          "reason": d["decision_reason"], "func": cat.get("function", ""),
                          "industry": cat.get("industry", "")})
     write_csv(os.path.join(workdir, "result2.csv"), R2_HEADER, rows2)

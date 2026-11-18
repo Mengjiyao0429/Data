@@ -7,23 +7,103 @@
 import io
 import os
 import threading
+from datetime import timedelta
+from functools import wraps
 
-from flask import Flask, Response, jsonify, render_template, request, send_file
+from flask import Flask, Response, jsonify, redirect, render_template, request, send_file, session, url_for
 
-from core import batchstore, datastore, db, llm, pipeline, proposal, sources
+from core import auth, batchstore, datastore, db, llm, pipeline, proposal, qa, sources
 
 BASE = os.path.dirname(os.path.abspath(__file__))
 app = Flask(__name__,
             static_folder=os.path.join(BASE, "static"),
             template_folder=os.path.join(BASE, "templates"))
 app.config["JSON_AS_ASCII"] = False
+app.config["PERMANENT_SESSION_LIFETIME"] = timedelta(hours=8)
+# 会话签名密钥：优先读环境变量，否则在实例目录生成一次并持久化（重启不掉登录）
+_secret_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "instance", "secret.key")
+os.makedirs(os.path.dirname(_secret_path), exist_ok=True)
+if os.environ.get("TASK5_SECRET"):
+    app.secret_key = os.environ["TASK5_SECRET"]
+elif os.path.exists(_secret_path):
+    app.secret_key = open(_secret_path, "rb").read()
+else:
+    _key = os.urandom(32)
+    with open(_secret_path, "wb") as _f:
+        _f.write(_key)
+    app.secret_key = _key
 
 db.init()
+auth.init()
+
+
+def current_user():
+    """服务端会话身份；不再读取 X-Role / ?role。未登录返回 None。"""
+    return auth.session_user(session)
 
 
 def role():
-    r = (request.headers.get("X-Role") or request.args.get("role") or "requester").strip().lower()
-    return r if r in ("requester", "decision") else "requester"
+    u = current_user()
+    return u["role"] if u else "guest"
+
+
+def login_required(fn):
+    @wraps(fn)
+    def wrap(*a, **kw):
+        if not current_user():
+            return jsonify(error="未登录或会话已过期", need_login=True), 401
+        return fn(*a, **kw)
+    return wrap
+
+
+def require_role(*roles):
+    def deco(fn):
+        @wraps(fn)
+        def wrap(*a, **kw):
+            u = current_user()
+            if not u:
+                return jsonify(error="未登录", need_login=True), 401
+            if u["role"] not in roles:
+                return jsonify(error="权限不足：仅 %s 可操作" % "/".join(roles)), 403
+            return fn(*a, **kw)
+        return wrap
+    return deco
+
+
+def audit(action, detail=""):
+    u = current_user()
+    db.audit((u["username"] if u else "anonymous"), "FORM:" + action,
+             "%s | ip=%s" % (detail, auth.client_ip(request)))
+
+
+# ==================== 认证路由 ====================
+@app.post("/api/login")
+def api_login():
+    data = request.get_json(silent=True) or {}
+    user = auth.verify((data.get("username") or "").strip(), data.get("password") or "")
+    if not user:
+        return jsonify(error="用户名或口令错误"), 401
+    auth.set_session(session, user)
+    audit("login", "ok")
+    return jsonify(ok=True, user=user)
+
+
+@app.post("/api/logout")
+def api_logout():
+    audit("logout", "")
+    session.clear()
+    return jsonify(ok=True)
+
+
+@app.get("/api/me")
+def api_me():
+    u = current_user()
+    return jsonify(user=u, authenticated=bool(u))
+
+
+@app.get("/login")
+def login_page():
+    return render_template("login.html")
 
 
 def summary(c):
@@ -44,7 +124,89 @@ def health():
     return jsonify(ok=True, service="task5-opportunity-system", clusters=len(datastore.clusters()))
 
 
+@app.post("/api/ask")
+@login_required
+def api_ask():
+    data = request.get_json(silent=True) or {}
+    res = qa.answer(data.get("question", ""), db.get_settings(), use_llm=True)
+    audit("ask", (data.get("question") or "")[:80])
+    return jsonify(ok=True, **res)
+
+
+@app.get("/api/analytics")
+@login_required
+def api_analytics():
+    """返回全流程各类占比，供前端绘制饼图/占比条。"""
+    m = datastore.meta()
+    cs = datastore.clusters()
+    from collections import Counter
+
+    def pct(counter):
+        total = sum(counter.values()) or 1
+        return [{"name": k, "value": v, "pct": round(v / total * 100, 1)}
+                for k, v in counter.most_common()]
+
+    func = Counter()
+    ind = Counter()
+    src = Counter()
+    size_by_batch = Counter()
+    for c in cs:
+        func[c["func"] or "未分类"] += c["size"]
+        ind[c["industry"] or "未分类"] += c["size"]
+        for s in c["sources"]:
+            src[s["name"]] += s["count"]
+    for bs in m.get("batch_stats", []):
+        size_by_batch[bs["batch"]] = bs["opps"]
+
+    # 置信度分桶（机会记录）
+    buckets = Counter()
+    import csv as _csv
+    r2 = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "任务二", "结果", "result2.csv")
+    if os.path.exists(r2):
+        for r in _csv.DictReader(open(r2, encoding="utf-8-sig")):
+            if r.get("是否构成机会") == "1":
+                try:
+                    v = float(r.get("机会置信度", 0) or 0)
+                except ValueError:
+                    v = 0
+                buckets["%.1f" % (int(v * 10) / 10)] += 1
+
+    # 桑基图流向数据：采集 → 机会/非机会 → 各主题簇（用于替换传统漏斗）
+    sankey_nodes = [{"name": "采集清洗去重"}, {"name": "AI应用机会"}, {"name": "未构成机会"}]
+    sankey_links = [
+        {"source": "采集清洗去重", "target": "AI应用机会", "value": m["total_opportunities"]},
+        {"source": "采集清洗去重", "target": "未构成机会",
+         "value": max(m["total_records"] - m["total_opportunities"], 0)},
+    ]
+    opp_total_in_clusters = 0
+    for c in cs[:10]:
+        nm = "%s %s" % (c["cid"], (c["name"] or "主题簇")[:8])
+        sankey_nodes.append({"name": nm})
+        sankey_links.append({"source": "AI应用机会", "target": nm, "value": c["size"]})
+        opp_total_in_clusters += c["size"]
+    # 未进入 Top10 簇的机会单列，保证流向守恒
+    rest = m["total_opportunities"] - opp_total_in_clusters
+    if rest > 0:
+        sankey_nodes.append({"name": "其他机会"})
+        sankey_links.append({"source": "AI应用机会", "target": "其他机会", "value": rest})
+
+    return jsonify(
+        funnel=[{"name": "采集清洗去重", "value": m["total_records"]},
+                {"name": "AI应用机会", "value": m["total_opportunities"]},
+                {"name": "主题簇", "value": m["clusters"]}],
+        sankey={"nodes": sankey_nodes, "links": sankey_links},
+        source_share=pct(Counter({s["name"]: s["count"] for s in m["sources"]})),
+        func_share=pct(func),
+        industry_share=pct(ind),
+        cluster_source_share=pct(src),
+        opp_by_batch=[{"batch": b, "opps": v} for b, v in sorted(size_by_batch.items())],
+        confidence_hist=[{"bucket": k, "count": v} for k, v in sorted(buckets.items())],
+        value_top=[{"cid": c["cid"], "name": c["name"], "score": c["score"]} for c in cs[:10]],
+    )
+
+
 @app.get("/api/bootstrap")
+@login_required
 def bootstrap():
     return jsonify(
         meta=datastore.meta(),
@@ -56,6 +218,7 @@ def bootstrap():
 
 
 @app.get("/api/clusters")
+@login_required
 def api_clusters():
     items = datastore.search(
         request.args.get("q", ""), request.args.get("industry", ""),
@@ -64,6 +227,7 @@ def api_clusters():
 
 
 @app.get("/api/clusters/<cid>")
+@login_required
 def api_cluster(cid):
     c = datastore.get(cid)
     if not c:
@@ -72,22 +236,25 @@ def api_cluster(cid):
 
 
 @app.post("/api/select")
+@login_required
 def api_select():
     data = request.get_json(silent=True) or {}
     c = datastore.get(data.get("cid"))
     if not c:
         return jsonify(error="主题簇不存在"), 404
-    sid = db.add_selection(c["cid"], c["name"], c["score"], c["priority"], role(), data.get("note", ""))
-    db.audit(role(), "select_opportunity", c["cid"])
+    sid = db.add_selection(c["cid"], c["name"], c["score"], c["priority"], current_user()["username"], data.get("note", ""))
+    audit("select_opportunity", c["cid"])
     return jsonify(ok=True, id=sid, cid=c["cid"])
 
 
 @app.get("/api/selections")
+@login_required
 def api_selections():
     return jsonify(items=db.list_selections())
 
 
 @app.post("/api/proposal")
+@login_required
 def api_proposal():
     data = request.get_json(silent=True) or {}
     c = datastore.get(data.get("cid"))
@@ -96,18 +263,20 @@ def api_proposal():
     cfg = db.get_settings()
     res = proposal.generate(c, datastore.meta(), cfg)
     pid = db.add_proposal(c["cid"], c["name"], res["mode"], res["model"],
-                          res["markdown"], res["tokens"], role())
-    db.audit(role(), "generate_proposal", "%s/%s" % (c["cid"], res["mode"]))
+                          res["markdown"], res["tokens"], current_user()["username"])
+    audit("generate_proposal", "%s/%s" % (c["cid"], res["mode"]))
     return jsonify(ok=True, id=pid, cid=c["cid"], mode=res["mode"], model=res["model"],
                    tokens=res["tokens"], chars=len(res["markdown"]), markdown=res["markdown"])
 
 
 @app.get("/api/proposals")
+@login_required
 def api_proposals():
     return jsonify(items=db.list_proposals())
 
 
 @app.get("/api/proposals/<int:pid>")
+@login_required
 def api_proposal_get(pid):
     p = db.get_proposal(pid)
     if not p:
@@ -116,6 +285,7 @@ def api_proposal_get(pid):
 
 
 @app.get("/api/proposals/<int:pid>/download")
+@login_required
 def api_proposal_download(pid):
     p = db.get_proposal(pid)
     if not p:
@@ -136,28 +306,30 @@ def api_proposal_download(pid):
 
 
 @app.get("/api/settings")
+@login_required
 def api_settings_get():
     return jsonify(db.public_settings())
 
 
 @app.post("/api/settings")
+@require_role("decision")
 def api_settings_post():
-    if role() != "decision":
-        return jsonify(error="仅决策者可修改系统配置"), 403
     cfg = db.save_settings(request.get_json(silent=True) or {})
-    db.audit(role(), "update_settings", cfg.get("provider"))
+    audit("update_settings", cfg.get("provider"))
     return jsonify(ok=True, settings=db.public_settings())
 
 
 @app.post("/api/test")
+@require_role("decision")
 def api_test():
     cfg = db.get_settings()
     ok, msg, ms = llm.test(cfg)
-    db.audit(role(), "test_llm", "%s %s" % (cfg.get("provider"), "ok" if ok else "fail"))
+    audit("test_llm", "%s %s" % (cfg.get("provider"), "ok" if ok else "fail"))
     return jsonify(ok=ok, message=msg, ms=ms)
 
 
 @app.get("/api/audit")
+@require_role("decision")
 def api_audit():
     with db._conn() as c:  # noqa: SLF001
         rows = [dict(r) for r in c.execute("SELECT * FROM audit ORDER BY id DESC LIMIT 50")]
@@ -178,6 +350,7 @@ def _run_batch_async(bid, requirement):
 
 
 @app.get("/api/sources")
+@login_required
 def api_sources():
     return jsonify(
         items=[{"key": k, "label": sources.SOURCE_LABELS.get(k, k)} for k in sources.ADAPTERS],
@@ -187,6 +360,7 @@ def api_sources():
 
 
 @app.post("/api/requirements")
+@login_required
 def api_requirements():
     data = request.get_json(silent=True) or {}
     query = (data.get("query") or "").strip()
@@ -202,7 +376,7 @@ def api_requirements():
 
     bid = pipeline.next_batch_id()
     db.create_batch(bid, query, srcs, target, data.get("note", ""))
-    db.audit(role(), "create_requirement", "%s %s %s" % (bid, query, ",".join(srcs)))
+    audit("create_requirement", "%s %s %s" % (bid, query, ",".join(srcs)))
     threading.Thread(target=_run_batch_async,
                      args=(bid, {"query": query, "sources": srcs, "target": target,
                                  "note": data.get("note", "")}), daemon=True).start()
@@ -210,11 +384,13 @@ def api_requirements():
 
 
 @app.get("/api/batches")
+@login_required
 def api_batches():
     return jsonify(items=db.list_batches(), next_batch=pipeline.next_batch_id())
 
 
 @app.get("/api/batches/<bid>")
+@login_required
 def api_batch(bid):
     info = db.get_batch(bid)
     if not info:
@@ -228,6 +404,7 @@ def api_batch(bid):
 
 
 @app.get("/api/batches/<bid>/clusters/<cid>")
+@login_required
 def api_batch_cluster(bid, cid):
     data = batchstore.load_batch(bid)
     if not data:
@@ -239,6 +416,7 @@ def api_batch_cluster(bid, cid):
 
 
 @app.get("/api/batches/<bid>/records")
+@login_required
 def api_batch_records(bid):
     workdir = os.path.join(pipeline.BATCH_ROOT, bid)
     r1 = os.path.join(workdir, "result1.csv")
@@ -288,6 +466,7 @@ def api_batch_records(bid):
 
 
 @app.post("/api/batches/<bid>/proposal")
+@login_required
 def api_batch_proposal(bid):
     data = request.get_json(silent=True) or {}
     cid = data.get("cid")
@@ -300,14 +479,15 @@ def api_batch_proposal(bid):
     cfg = db.get_settings()
     res = proposal.generate(c, blob["meta"], cfg)
     pid = db.add_proposal(c["cid"], c["name"], res["mode"], res["model"],
-                          res["markdown"], res["tokens"], role(), bid=bid)
-    db.audit(role(), "generate_proposal", "%s/%s/%s" % (bid, c["cid"], res["mode"]))
+                          res["markdown"], res["tokens"], current_user()["username"], bid=bid)
+    audit("generate_proposal", "%s/%s/%s" % (bid, c["cid"], res["mode"]))
     return jsonify(ok=True, id=pid, cid=c["cid"], bid=bid, mode=res["mode"],
                    model=res["model"], tokens=res["tokens"], chars=len(res["markdown"]),
                    markdown=res["markdown"])
 
 
 @app.get("/api/batches/<bid>/report")
+@login_required
 def api_batch_report(bid):
     p = os.path.join(pipeline.BATCH_ROOT, bid, "批次报告.md")
     if not os.path.exists(p):
@@ -317,6 +497,7 @@ def api_batch_report(bid):
 
 
 @app.get("/api/batches/<bid>/file")
+@login_required
 def api_batch_file(bid):
     kind = (request.args.get("name") or "").strip()
     allowed = {"result1.csv", "result2.csv", "result3.csv", "result4.csv", "原始记录.json"}
@@ -331,7 +512,11 @@ def api_batch_file(bid):
 
 @app.errorhandler(Exception)
 def on_error(e):  # noqa: ANN001
-    return jsonify(error=str(e)), 500
+    from werkzeug.exceptions import HTTPException
+    if isinstance(e, HTTPException):
+        return jsonify(error=e.description), e.code
+    app.logger.exception("unhandled error")
+    return jsonify(error="服务器内部错误"), 500
 
 
 if __name__ == "__main__":

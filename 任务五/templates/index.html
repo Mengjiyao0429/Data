@@ -18,8 +18,10 @@
   <nav class="nav">
     <a data-page="new"><span class="dot"></span>需求发起</a>
     <a data-page="overview" class="active"><span class="dot"></span>概览看板</a>
+    <a data-page="insight" class="new"><span class="dot"></span>数据分析</a>
     <a data-page="batch"><span class="dot"></span>批次分析</a>
     <a data-page="select"><span class="dot"></span>机会选取</a>
+    <a data-page="ask"><span class="dot"></span>智能问答</a>
     <a data-page="library"><span class="dot"></span>策划案库</a>
     <a data-page="settings"><span class="dot"></span>系统设置</a>
   </nav>
@@ -35,10 +37,8 @@
     <div class="spacer"></div>
     <span class="pill" id="modePill">模式加载中</span>
     <span class="pill ok" id="statusPill">服务正常</span>
-    <select id="roleSel" title="切换角色">
-      <option value="requester">需求发起者</option>
-      <option value="decision">决策者</option>
-    </select>
+    <span class="pill" id="userPill" title="当前登录身份">未登录</span>
+    <button class="btn ghost" id="btnLogout" style="padding:5px 10px;font-size:12px">退出</button>
   </header>
 
   <div class="content">
@@ -98,7 +98,7 @@
 
       <div class="grid2">
         <div class="card">
-          <div class="card-head"><h2>本批次漏斗</h2><span class="hint">本批次独立计数</span></div>
+          <div class="card-head"><h2>本批次转化占比</h2><span class="hint">本批次独立计数 · 环形视图</span></div>
           <div class="chart" id="bChartFunnel"></div>
         </div>
         <div class="card">
@@ -160,7 +160,7 @@
 
       <div class="grid2">
         <div class="card">
-          <div class="card-head"><h2>全流程漏斗</h2><span class="hint">采集 → 机会 → 主题簇</span></div>
+          <div class="card-head"><h2>全流程转化占比</h2><span class="hint">采集 → 机会 → 主题簇 · 环形视图</span></div>
           <div class="chart" id="chartFunnel"></div>
         </div>
         <div class="card">
@@ -236,6 +236,81 @@
           </thead>
           <tbody id="tblBodyLib"></tbody>
         </table>
+      </div>
+    </section>
+
+    <!-- ============ 数据分析（占比看板） ============ -->
+    <section class="page hidden" id="page-insight">
+      <div class="card-head" style="margin-bottom:12px">
+        <h2>全流程数据洞察 · 占比分析</h2>
+        <span class="hint">基于任务一～四真实结果的统计视图，所有占比可溯源</span>
+      </div>
+
+      <div class="card">
+        <div class="card-head"><h2>全流程流向 · 桑基图</h2><span class="hint">采集 → 机会 / 非机会 → 各主题簇，流向宽度即规模</span></div>
+        <div class="chart" id="insFunnel" style="height:360px"></div>
+      </div>
+
+      <div class="grid2" style="margin-top:16px">
+        <div class="card">
+          <div class="card-head"><h2>转化进度 · 环形占比</h2><span class="hint">机会率 / 簇覆盖率 / 高价值方向</span></div>
+          <div class="chart" id="insFunnelRate" style="height:320px"></div>
+        </div>
+        <div class="card">
+          <div class="card-head"><h2>阶段收窄 · 阶梯瀑布</h2><span class="hint">采集 → 机会 → 主题簇逐级递减</span></div>
+          <div class="chart" id="insWaterfall" style="height:320px"></div>
+        </div>
+      </div>
+
+      <div class="grid2" style="margin-top:16px">
+        <div class="card">
+          <div class="card-head"><h2>来源构成占比</h2><span class="hint">14 个公开渠道</span></div>
+          <div class="chart" id="insSourcePie" style="height:320px"></div>
+        </div>
+        <div class="card">
+          <div class="card-head"><h2>功能类别占比</h2><span class="hint">按机会记录数</span></div>
+          <div class="chart" id="insFuncPie" style="height:320px"></div>
+        </div>
+      </div>
+
+      <div class="grid2" style="margin-top:16px">
+        <div class="card">
+          <div class="card-head"><h2>所属行业占比</h2><span class="hint">按机会记录数</span></div>
+          <div class="chart" id="insIndPie" style="height:320px"></div>
+        </div>
+        <div class="card">
+          <div class="card-head"><h2>置信度分布</h2><span class="hint">经金标 isotonic 校准</span></div>
+          <div class="chart" id="insConf" style="height:320px"></div>
+        </div>
+      </div>
+
+      <div class="grid2" style="margin-top:16px">
+        <div class="card">
+          <div class="card-head"><h2>各批次机会数（批次独立）</h2><span class="hint">B01–B08</span></div>
+          <div class="chart" id="insBatchBar" style="height:300px"></div>
+        </div>
+        <div class="card">
+          <div class="card-head"><h2>Top10 主题簇价值分</h2><span class="hint">固定基准评分</span></div>
+          <div class="chart" id="insValueBar" style="height:300px"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ 智能问答 ============ -->
+    <section class="page hidden" id="page-ask">
+      <div class="card">
+        <div class="card-head"><h2>智能问答咨询</h2><span class="hint">基于真实主题簇与证据的检索增强问答，无 API Key 时离线可用</span></div>
+        <div class="ask-quick">
+          <span class="hint">试试：</span>
+          <button class="btn ghost mini ask-q">哪些主题簇价值最高？</button>
+          <button class="btn ghost mini ask-q">医疗相关的机会有哪些？</button>
+          <button class="btn ghost mini ask-q">智能体编排方向的证据</button>
+        </div>
+        <div class="ask-box">
+          <input id="askInput" placeholder="输入你的问题，例如：教育行业有哪些高价值机会？">
+          <button class="btn primary" id="btnAsk">提问</button>
+        </div>
+        <div class="ask-answer" id="askAnswer"><span class="hint">提问后将在此显示带溯源的回答。</span></div>
       </div>
     </section>
 
@@ -349,5 +424,6 @@
 <div id="toast"></div>
 <script src="{{ url_for('static', filename='app.js') }}"></script>
 <script src="{{ url_for('static', filename='batch.js') }}"></script>
+<script src="{{ url_for('static', filename='insight.js') }}"></script>
 </body>
 </html>

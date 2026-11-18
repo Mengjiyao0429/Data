@@ -187,3 +187,11 @@ tbody tr.sel{background:#eef6ff}
   align-items:center;justify-content:center;padding:24px}
 #bModal.show,#bModal.open{display:flex}
 #bModal .btn{text-decoration:none;display:inline-flex;align-items:center}
+
+/* ============ 新增：数据分析 / 智能问答 ============ */
+.nav a.new .dot { background:#e8894a; }
+.ask-quick { display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-bottom:14px; }
+.ask-box { display:flex; gap:10px; margin-top:8px; }
+.ask-box input { flex:1; padding:11px 13px; border:1px solid var(--color-border-secondary,#d7dfe9); border-radius:8px; font-size:14px; }
+.ask-answer { margin-top:18px; padding:16px; min-height:120px; background:var(--color-background-secondary,#f7f9fc); border:1px solid var(--color-border-tertiary,#e3e8ef); border-radius:10px; font-size:13px; line-height:1.8; white-space:pre-wrap; }
+.ask-answer .hint { color:var(--color-text-tertiary,#9aa7b6); }

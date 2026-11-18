@@ -36,7 +36,10 @@ C = {
     "orange": "#F79646", "purple": "#8064A2", "steel": "#4F81BD", "gray": "#A5A5A5",
     "teal": "#31859B", "gold": "#D9A441",
 }
-BATCH_COLOR = {"B01": "#2E5C8A", "B02": "#4F81BD", "B03": "#4BACC6", "B04": "#C0504D", "B05": "#F79646"}
+BATCH_COLOR = {
+    "B01": "#2E5C8A", "B02": "#4F81BD", "B03": "#4BACC6", "B04": "#C0504D",
+    "B05": "#F79646", "B06": "#8064A2", "B07": "#31859B", "B08": "#9BBB59",
+}
 
 
 def save(fig, name):
@@ -108,37 +111,46 @@ def parse_task3_metrics():
     return rows
 
 
-# ---------------------------------------------------------------- 图 1：全流程漏斗
+# ---------------------------------------------------------------- 图 1：全流程阶段收窄（阶梯瀑布）
 def chart_funnel(t1, t2, t3, t4):
     n_rec = len(t1)
     n_opp = sum(1 for r in t2 if r["是否构成机会"] == "1")
     n_clu = len(t3)
     n_top = sum(1 for r in t4["clusters"] if int(r["priority"]) <= 5)
     stages = [
-        ("采集清洗去重", n_rec, "多源 12 站 · 5 批次"),
-        ("AI 应用机会", n_opp, f"占 {n_opp / n_rec:.1%}"),
-        ("主题簇", n_clu, "语义聚类"),
-        ("高价值方向", n_top, "优先级 1–5"),
+        ("采集清洗去重", n_rec, f"基准 100%"),
+        ("AI 应用机会", n_opp, f"占采集 {n_opp / n_rec:.1%}"),
+        ("主题簇", n_clu, f"占机会 {n_clu / max(n_opp, 1):.1%}"),
+        ("高价值方向", n_top, f"优先级 1–5"),
     ]
-    fig, ax = plt.subplots(figsize=(9, 4.2))
-    maxw = stages[0][1]
+    fig, ax = plt.subplots(figsize=(9.5, 4.6))
+    colors = [C["blue"], C["green"], C["orange"], C["red"]]
+    # 阶梯瀑布：每级宽度按规模线性递减，居中对齐，右侧标注数值与留存率
     for i, (name, cnt, note) in enumerate(stages):
-        w = 0.62 * cnt / maxw + 0.18
+        w = 0.68 * cnt / max(n_rec, 1) + 0.12
         y = len(stages) - i
-        ax.add_patch(plt.Rectangle((0.5 - w / 2, y - 0.34), w, 0.68,
-                                   color=[C["blue"], C["cyan"], C["green"], C["orange"]][i], alpha=0.9))
-        ax.text(0.5, y, f"{name}  {cnt}", ha="center", va="center", color="white", fontsize=12, fontweight="bold")
-        ax.text(0.5, y - 0.5, note, ha="center", va="center", color="#555", fontsize=9)
+        ax.add_patch(plt.Rectangle((0.5 - w / 2, y - 0.32), w, 0.64,
+                                   color=colors[i], alpha=0.92))
+        ax.text(0.5, y, f"{name}  {cnt:,}", ha="center", va="center",
+                color="white", fontsize=11, fontweight="bold")
+        ax.text(0.5, y - 0.46, note, ha="center", va="center", color="#555", fontsize=9)
+        if i > 0:
+            rate = cnt / max(stages[i - 1][1], 1) * 100
+            ax.annotate("", xy=(0.5 + w / 2 + 0.02, y), xytext=(0.5 + w / 2 + 0.02, y + 1),
+                        arrowprops=dict(arrowstyle="->", color="#9dbfdc", lw=1.4))
+            ax.text(0.5 + w / 2 + 0.04, y + 0.5, f"{rate:.1f}%", va="center",
+                    color="#2E5C8A", fontsize=9, fontweight="bold")
     ax.set_xlim(0, 1)
     ax.set_ylim(0.3, len(stages) + 0.7)
     ax.axis("off")
-    ax.set_title("全流程数据规模漏斗：5517 → 388 → 14 → 5", fontsize=13, fontweight="bold")
-    save(fig, "01_全流程漏斗.png")
+    ax.set_title("全流程阶段收窄（阶梯瀑布）：{} → {} → {} → {}".format(*[s[1] for s in stages]),
+                 fontsize=13, fontweight="bold")
+    save(fig, "01_全流程阶段收窄.png")
 
 
 # ---------------------------------------------------------------- 图 2：批次×来源堆叠
 def chart_batch_source(t1):
-    batches = ["B01", "B02", "B03", "B04", "B05"]
+    batches = sorted({x["batch"] for x in t1})
     srcs = [s for s, _ in Counter(x["src"] for x in t1).most_common()]
     mat = defaultdict(lambda: defaultdict(int))
     for x in t1:
@@ -204,15 +216,17 @@ def chart_length_lang(t1):
 
 # ---------------------------------------------------------------- 图 5：各批次机会率
 def chart_opp_rate(t2):
-    batches = ["B01", "B02", "B03", "B04", "B05"]
     tot = Counter(r["采集批次号"] for r in t2)
     opp = Counter(r["采集批次号"] for r in t2 if r["是否构成机会"] == "1")
+    batches = sorted(tot)
     rates = [opp[b] / tot[b] * 100 for b in batches]
+    global_rate = sum(opp.values()) / max(sum(tot.values()), 1) * 100
     fig, ax = plt.subplots(figsize=(9, 4.2))
-    bars = ax.bar(batches, rates, color=[BATCH_COLOR[b] for b in batches], edgecolor="white")
+    palette = plt.cm.tab10(np.linspace(0, 1, len(batches)))
+    bars = ax.bar(batches, rates, color=[BATCH_COLOR.get(b, palette[i]) for i, b in enumerate(batches)], edgecolor="white")
     for i, b in enumerate(batches):
         ax.text(i, rates[i] + 0.3, f"{rates[i]:.1f}%\n{opp[b]}/{tot[b]}", ha="center", fontsize=9)
-    ax.axhline(7.0, color=C["gray"], linestyle="--", linewidth=1, label="全局 7.0%")
+    ax.axhline(global_rate, color=C["gray"], linestyle="--", linewidth=1, label=f"全局 {global_rate:.1f}%")
     ax.set_ylabel("机会率 (%)")
     ax.set_ylim(0, max(rates) * 1.35)
     ax.set_title("任务二：各批次 AI 应用机会率", fontsize=12, fontweight="bold")

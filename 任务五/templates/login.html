@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>登录 · AI 应用场景机会评估系统</title>
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+<style>
+  .login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;background:var(--color-background-tertiary,#f5f7fa)}
+  .login-card{width:100%;max-width:400px;background:#fff;border:1px solid #e3e8ef;border-radius:16px;padding:32px;box-shadow:0 8px 30px rgba(20,40,80,.06)}
+  .login-card h1{font-size:19px;font-weight:500;margin:0 0 6px;color:#1f2d3d}
+  .login-card p.sub{font-size:12px;color:#8091a5;margin:0 0 24px}
+  .login-card .row{margin-bottom:16px}
+  .login-card label{display:block;font-size:12px;color:#5b6b7f;margin-bottom:6px}
+  .login-card input{width:100%;box-sizing:border-box;padding:10px 12px;border:1px solid #d7dfe9;border-radius:8px;font-size:14px;outline:none}
+  .login-card input:focus{border-color:#3a7bd5}
+  .login-card button{width:100%;padding:11px;border:0;border-radius:8px;background:#1f6feb;color:#fff;font-size:14px;cursor:pointer;margin-top:6px}
+  .login-card button:hover{background:#1a5fd0}
+  .login-err{font-size:12px;color:#c0392b;min-height:18px;margin-top:8px}
+  .login-hint{font-size:11px;color:#9aa7b6;margin-top:18px;line-height:1.7;border-top:1px dashed #e3e8ef;padding-top:14px}
+</style>
+</head>
+<body>
+<div class="login-wrap">
+  <div class="login-card">
+    <h1>AI 应用场景机会评估系统</h1>
+    <p class="sub">需求挖掘 · 机会评估 · 立项决策</p>
+    <form id="loginForm">
+      <div class="row"><label>用户名</label><input id="u" autocomplete="username" value=""></div>
+      <div class="row"><label>口令</label><input id="p" type="password" autocomplete="current-password"></div>
+      <button type="submit">登录</button>
+      <div class="login-err" id="err"></div>
+    </form>
+    <div class="login-hint">
+      演示账号：需求发起者 <code>analyst / analyst@123</code>；决策者 <code>decision / decision@123</code>。<br>
+      角色由服务端会话判定，客户端无法伪造。部署时请修改口令。
+    </div>
+  </div>
+</div>
+<script>
+document.getElementById('loginForm').addEventListener('submit', async function(e){
+  e.preventDefault();
+  const err=document.getElementById('err'); err.textContent='';
+  try{
+    const r=await fetch('/api/login',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({username:document.getElementById('u').value.trim(),password:document.getElementById('p').value})});
+    const d=await r.json();
+    if(!r.ok){err.textContent=d.error||'登录失败';return;}
+    location.href='/';
+  }catch(ex){err.textContent='网络错误：'+ex.message;}
+});
+</script>
+</body>
+</html>
