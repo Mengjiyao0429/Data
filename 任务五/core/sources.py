@@ -8,7 +8,7 @@
   hackernews    : hn.algolia.com /api/v1/search                (tags=comment)
   github        : api.github.com /search/repositories          (sort=stars, created 过滤)
   csdn          : so.csdn.net /api/v3/search                   (站内搜索接口)
-  replay        : 任务一已采集语料（8038 条快照）按关键词重排 —— 仅用于断网演示，
+  replay        : 任务一已采集语料（4322 条快照）按关键词重排 —— 仅用于断网演示，
                   记录里会明确标注"本地语料回放"，不会伪装成实时采集
 
 统一记录字段：
@@ -232,7 +232,7 @@ def collect_csdn(query, limit=100, proxy=None):
 
 # ---------------- 本地语料回放（离线兜底） ----------------
 def collect_replay(query, limit=200, proxy=None):
-    """从任务一已采集的 8038 条快照里，按需求关键词重排后取前 limit 条。
+    """从任务一已采集的 4322 条快照里，按需求关键词重排后取前 limit 条。
 
     用途：断网 / 接口限流时的可运行兜底。记录 via="replay"，界面与报告会明确标注，
     不冒充新采集。

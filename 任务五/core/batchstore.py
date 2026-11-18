@@ -116,7 +116,7 @@ def load_batch(bid):
         "sources": [{"name": k, "count": v} for k, v in sorted(src_count.items(), key=lambda t: -t[1])],
         "batch_stats": [{"batch": bid, "records": len(rows1), "opps": opp_n,
                          "rate": round(opp_n / len(rows1) * 100, 1) if rows1 else 0}],
-        "weights": [0.35, 0.35, 0.30],
+        "weights": [0.2930, 0.5065, 0.2005],  # 与任务四采用权重一致
         "max_heat": None,
         "batch": info,
     }

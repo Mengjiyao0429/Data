@@ -100,7 +100,10 @@ def parse_task3_metrics():
     """解析 task3_主题簇报告.md 第三节逐簇质量指标表。"""
     p = os.path.join(ROOT, "任务三", "task3_主题簇报告.md")
     txt = open(p, encoding="utf-8").read()
-    sec = txt.split("## 三、逐簇质量指标", 1)[1].split("## 四、", 1)[0]
+    parts = txt.split("## 三、逐簇质量指标", 1)
+    if len(parts) < 2:
+        return []  # 报告已改为批次级指标，本函数仅兼容旧版报告
+    sec = parts[1].split("## 四、", 1)[0]
     rows = []
     for line in sec.splitlines():
         m = re.match(r"^\|\s*(C\d+)\s*\|\s*(.+?)\s*\|\s*(\d+)\s*\|\s*([\-\d.]+)\s*\|\s*([\-\d.]+)\s*\|\s*([\d.]+)\s*\|\s*([\d.]+)%", line)
@@ -308,24 +311,26 @@ def chart_confusion(t2):
 
 
 # ---------------------------------------------------------------- 图 9：簇规模 + 逐簇指标
-def chart_cluster_quality(t3, metrics):
+def chart_cluster_quality(t3, meta):
     cids = [r["主题簇编号"] for r in t3]
     sizes = [int(r["簇内机会记录数"]) for r in t3]
     fig, axes = plt.subplots(1, 2, figsize=(13, 4.6))
     ax = axes[0]
-    ax.bar(cids, sizes, color=[plt.cm.viridis(i / len(cids)) for i in range(len(cids))])
-    for i, v in enumerate(sizes):
-        ax.text(i, v + 0.8, str(v), ha="center", fontsize=8)
-    ax.set_title("14 个主题簇的记录规模", fontsize=11, fontweight="bold")
+    ax.bar(cids, sizes, color=[BATCH_COLOR.get(r["采集批次号"], C["steel"]) for r in t3])
+    ax.set_title(f"{len(cids)} 个主题簇的记录规模（逐批次独立聚类）", fontsize=11, fontweight="bold")
     ax.set_ylabel("簇内机会记录数")
+    ax.tick_params(axis="x", labelrotation=90, labelsize=7)
+    # 右图：只展示批次级内部指标，避免把批次常量误画成“逐簇指标”
     ax2 = axes[1]
-    x = np.arange(len(metrics))
-    wgt = 0.38
-    ax2.bar(x - wgt / 2, [m["npmI"] for m in metrics], wgt, label="NPMI 主题一致性", color=C["blue"])
-    ax2.bar(x + wgt / 2, [m["cos"] for m in metrics], wgt, label="簇内余弦相似度", color=C["green"])
-    ax2.set_xticks(x); ax2.set_xticklabels([m["cid"] for m in metrics], fontsize=8)
+    batches = sorted(meta["batches"])
+    sil = [meta["batches"][b]["silhouette"] for b in batches]
+    ari = [meta["batches"][b]["stability"] for b in batches]
+    x = np.arange(len(batches)); wgt = 0.38
+    ax2.bar(x - wgt / 2, sil, wgt, label="轮廓系数（批次级）", color=C["blue"])
+    ax2.bar(x + wgt / 2, ari, wgt, label="多种子平均 ARI（批次级）", color=C["green"])
+    ax2.set_xticks(x); ax2.set_xticklabels(batches, fontsize=9)
     ax2.set_ylabel("指标值")
-    ax2.set_title("逐簇质量指标（NPMI / 余弦相似度）", fontsize=11, fontweight="bold")
+    ax2.set_title("批次级聚类质量指标（轮廓系数 / ARI）", fontsize=11, fontweight="bold")
     ax2.legend(fontsize=8)
     save(fig, "09_簇规模与质量指标.png")
 
@@ -421,7 +426,7 @@ def chart_value_rank(t4):
         ax.text(v + 0.6, i, f"{v:.1f}", va="center", fontsize=8)
     ax.set_xlabel("机会价值分")
     ax.set_xlim(0, max(vals) * 1.12)
-    ax.set_title("任务四：14 个主题簇机会价值分与优先级", fontsize=12, fontweight="bold")
+    ax.set_title(f"任务四：{len(t4['clusters'])} 个主题簇机会价值分与优先级", fontsize=12, fontweight="bold")
     save(fig, "12_价值分排序.png")
 
 
@@ -470,6 +475,7 @@ def main():
     t2 = load_task2()
     t3 = load_task3()
     metrics = parse_task3_metrics()
+    t3meta = json.load(open(os.path.join(ROOT, "任务三", "结果", "result3_聚类元信息.json"), encoding="utf-8"))
     t4 = json.load(open(os.path.join(ROOT, "任务四", "结果", "result4_中间指标.json"), encoding="utf-8"))
     print(f"t1={len(t1)} t2={len(t2)} t3={len(t3)} metrics={len(metrics)} t4clusters={len(t4['clusters'])}")
 
@@ -481,7 +487,7 @@ def main():
     chart_conf(t2)
     chart_labels(t2)
     chart_confusion(t2)
-    chart_cluster_quality(t3, metrics)
+    chart_cluster_quality(t3, t3meta)
     chart_cluster_source(t1, t3)
     chart_semantic_space(t3)
     chart_value_rank(t4)

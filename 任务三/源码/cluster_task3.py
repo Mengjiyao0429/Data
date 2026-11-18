@@ -155,16 +155,23 @@ def main():
         for r in all_rows:
             f.write(f"| {r['采集批次号']} | {r['主题簇编号']} | {r['主题簇名称']} | {r['功能类别']} | "
                     f"{r['所属行业']} | {r['簇内机会记录数']} | {r['来源覆盖']} |\n")
-        f.write("\n## 三、逐簇质量指标\n\n")
-        f.write("| 簇 | 主题 | 记录数 | NPMI | 轮廓系数 | 簇内余弦相似度 | 行业标签一致率 |\n|---|---|---|---|---|---|---|\n")
+        f.write("\n## 三、簇内行业一致率（外部有效性参照）\n\n")
+        f.write("> 轮廓系数与多种子 ARI 是**批次级**指标（见第一节），不随簇变化，故不再伪装成“逐簇 NPMI/余弦”逐行重复。"
+                "本表仅报告可从记录标签直接复算的簇内行业众数占比；该指标受“其他”标签占比高影响，"
+                "只能作为弱监督参照，不作为聚类质量判据。\n\n")
+        f.write("| 簇 | 主题 | 批次 | 记录数 | 批次轮廓系数 | 批次稳定性 ARI | 簇内行业众数占比 |\n|---|---|---|---:|---:|---:|---:|\n")
+        ind_of = {(it["batch"], it["id"]): it.get("industry", "") for it in items}
         for row in all_rows:
             b = row["采集批次号"]
             info_b = meta[b]
-            n = int(row["簇内机会记录数"])
-            ind_cons = sum(1 for it in by_batch[b] if it["industry"] == row["所属行业"]) / max(1, len(by_batch[b]))
-            f.write(f"| {row['主题簇编号']} | {row['主题簇名称']} | {n} | {info_b['stability']:.3f} | "
-                    f"{info_b['silhouette']:.3f} | {max(0.0, info_b['silhouette']):.3f} | {ind_cons:.0%} |\n")
-        f.write("\n> NPMI 位以批次稳定性 ARI 替代展示（避免旧版排序错配）；轮廓系数短文本高维稀疏下结构性偏低，仅作参考。\n")
+            ids = [x.strip() for x in row["簇内机会记录"].split("；") if x.strip()]
+            inds = Counter(ind_of.get((b, x.split("-")[1]), "") for x in ids)
+            n = len(ids)
+            modal = max(inds.values()) / n if n else 0.0
+            f.write(f"| {row['主题簇编号']} | {row['主题簇名称']} | {b} | {n} | "
+                    f"{info_b['silhouette']:.4f} | {info_b['stability']:.4f} | {modal:.1%} |\n")
+        f.write("\n> 内部指标（批次级轮廓系数、ARI）显示簇结构偏弱；行业众数占比仅说明簇对应可辨认的业务语义，"
+                "两类指标共同支持将聚类结果定位为“粗粒度主题分区”。\n")
 
         f.write("\n## 四、跨批次热点主题（补充分析，非官方 result3）\n\n")
         f.write("> 以下为把全部批次机会记录合并观察的「全局热点」，仅用于多源共同指向的补充洞察；"

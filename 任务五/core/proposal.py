@@ -237,8 +237,8 @@ def template_proposal(cluster, meta, reason=None):
     L.append("## 八、价值评分与优先级")
     L.append("- 多源指向度：%.1f/100（来源种类越多，说明多源共同指向，需求越可信）" % dims["src"])
     L.append("- 记录规模：%.1f/100（簇内机会记录条数，反映需求密度）" % dims["size"])
-    L.append("- 商业信号：%.1f/100（0.6×互动热度 + 0.4×跨批次持续性）" % dims["biz"])
-    L.append("- 加权机会价值分：%.1f（权重 0.35 / 0.35 / 0.30）；优先级：%d"
+    L.append("- 商业信号：%.1f/100（0.7×簇内生均互动热度 + 0.3×簇内平均机会置信度）" % dims["biz"])
+    L.append("- 加权机会价值分：%.1f（权重 0.293 / 0.5065 / 0.2005，与任务四一致）；优先级：%d"
              % (cluster["score"], cluster["priority"]))
     L.append("")
     L.append("## 九、成本与资源估算")
