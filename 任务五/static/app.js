@@ -66,13 +66,14 @@
   }
 
   /* ---------------- 页面切换 ---------------- */
-  const PAGES = { overview: '概览看板', select: '机会选取', library: '策划案库', settings: '系统设置' };
+  const PAGES = { new: '需求发起', overview: '概览看板', batch: '批次分析', select: '机会选取', library: '策划案库', settings: '系统设置' };
   function showPage(name) {
     document.querySelectorAll('.nav a').forEach((a) => a.classList.toggle('active', a.dataset.page === name));
     Object.keys(PAGES).forEach((k) => el('page-' + k).classList.toggle('hidden', k !== name));
-    el('crumb').textContent = PAGES[name];
+    el('crumb').textContent = PAGES[name] || name;
     if (name === 'overview') { initCharts(); setTimeout(resizeCharts, 60); }
     if (name === 'library') loadLibrary();
+    window.dispatchEvent(new CustomEvent('page:change', { detail: { name: name } }));
   }
   document.querySelectorAll('.nav a').forEach((a) => {
     a.addEventListener('click', () => { location.hash = a.dataset.page; showPage(a.dataset.page); });

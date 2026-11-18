@@ -16,13 +16,15 @@
     <p>需求挖掘 · 机会评估 · 立项决策</p>
   </div>
   <nav class="nav">
+    <a data-page="new"><span class="dot"></span>需求发起</a>
     <a data-page="overview" class="active"><span class="dot"></span>概览看板</a>
+    <a data-page="batch"><span class="dot"></span>批次分析</a>
     <a data-page="select"><span class="dot"></span>机会选取</a>
     <a data-page="library"><span class="dot"></span>策划案库</a>
     <a data-page="settings"><span class="dot"></span>系统设置</a>
   </nav>
   <div class="side-foot">
-    数据版本：result1–result4<br>
+    需求驱动 · 一次需求一批次<br>
     任务五 · 结果呈现与决策支持
   </div>
 </aside>
@@ -40,6 +42,112 @@
   </header>
 
   <div class="content">
+
+    <!-- ============ 需求发起 ============ -->
+    <section class="page hidden" id="page-new">
+      <div class="card">
+        <div class="card-head"><h2>发起一次需求</h2><span class="hint">一次需求 = 一个独立批次：采集 → 清洗 → 去重 → 机会判别 → 主题聚类 → 价值评估</span></div>
+        <div class="form">
+          <div class="row">
+            <label>需求关键词</label>
+            <input id="rqQuery" placeholder="例如：AI 编程助手 代码生成；或：医疗影像辅助诊断">
+          </div>
+          <div class="row">
+            <label>采集来源</label>
+            <div class="chk-group" id="rqSources">加载中…</div>
+          </div>
+          <div class="grid">
+            <div class="row"><label>目标条数</label><input id="rqTarget" type="number" value="600" min="50" max="2000"></div>
+            <div class="row"><label>备注（写入批次报告）</label><input id="rqNote" placeholder="选填"></div>
+          </div>
+          <div class="actions">
+            <button class="btn primary" id="btnRunReq">发起采集与分析</button>
+            <span class="count" id="rqHint" style="margin-left:0">—</span>
+          </div>
+        </div>
+        <div class="notice blue" style="margin-top:14px">
+          采集耗时约 20–90 秒（取决于来源与条数）；断网或接口限流时可勾选「本地语料回放」离线运行，
+          记录会明确标注为回放，不冒充实时采集。
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:16px">
+        <div class="card-head"><h2>批次列表</h2><span class="hint">每个批次独立采集、独立聚类、独立评估，结果互不影响</span></div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr>
+              <th style="width:66px">批次</th><th>需求</th><th style="width:170px">来源</th>
+              <th style="width:70px">记录</th><th style="width:70px">机会</th><th style="width:56px">簇</th>
+              <th style="width:80px">状态</th><th style="width:66px">耗时</th><th style="width:150px">操作</th>
+            </tr></thead>
+            <tbody id="tblBatches"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ 批次分析 ============ -->
+    <section class="page hidden" id="page-batch">
+      <div class="notice" id="bNotice">请选择或发起一个批次。</div>
+      <div class="kpis">
+        <div class="kpi"><div class="lab">本批次记录</div><div class="val" id="bKpiRecords">—</div><div class="note" id="bKpiRecordsNote">采集清洗去重后</div></div>
+        <div class="kpi"><div class="lab">AI 应用机会</div><div class="val" id="bKpiOpps">—</div><div class="note" id="bKpiOppsNote">阈值 0.50</div></div>
+        <div class="kpi"><div class="lab">机会主题簇</div><div class="val" id="bKpiClusters">—</div><div class="note" id="bKpiClustersNote">本批次内聚类</div></div>
+        <div class="kpi"><div class="lab">最高价值主题簇</div><div class="val" id="bKpiTop">—</div><div class="note" id="bKpiTopNote">本批次内排序</div></div>
+      </div>
+
+      <div class="grid2">
+        <div class="card">
+          <div class="card-head"><h2>本批次漏斗</h2><span class="hint">本批次独立计数</span></div>
+          <div class="chart" id="bChartFunnel"></div>
+        </div>
+        <div class="card">
+          <div class="card-head"><h2>主题簇价值排序</h2><span class="hint">仅在本批次内可比</span></div>
+          <div class="chart" id="bChartRank"></div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:16px">
+        <div class="card-head"><h2>机会主题簇</h2><span class="hint">点击行查看证据链并生成策划案</span></div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr>
+              <th style="width:56px">簇号</th><th>主题簇名称</th><th style="width:110px">功能类别</th>
+              <th style="width:90px">行业</th><th style="width:66px">记录数</th><th style="width:66px">来源数</th>
+              <th style="width:76px">价值分</th><th style="width:66px">优先级</th>
+            </tr></thead>
+            <tbody id="bTblClusters"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="card hidden" id="bDetailCard" style="margin-top:16px">
+        <div class="card-head"><h2 id="bDetailTitle">—</h2><span class="hint" id="bDetailHint"></span></div>
+        <div id="bDetail"></div>
+      </div>
+
+      <div class="card" style="margin-top:16px">
+        <div class="card-head"><h2>原始记录检索（逐条溯源）</h2><span class="hint">编号 → 正文快照 → 原始链接，可逐条核对</span></div>
+        <div class="toolbar">
+          <input id="bQ" placeholder="按标题 / 正文 / 来源搜索">
+          <select id="bOnlyOpp"><option value="0">全部记录</option><option value="1">只看机会记录</option></select>
+          <button class="btn ghost" id="btnBQ">检索</button>
+          <span class="count" id="bQCount">—</span>
+          <div class="spacer"></div>
+          <button class="btn ghost" id="btnBReport">下载批次报告</button>
+        </div>
+        <div class="table-wrap" style="max-height:420px">
+          <table>
+            <thead><tr>
+              <th style="width:118px">编号</th><th>标题</th><th style="width:112px">来源</th>
+              <th style="width:96px">时间</th><th style="width:76px">是否机会</th>
+              <th style="width:76px">置信度</th><th style="width:130px">溯源</th>
+            </tr></thead>
+            <tbody id="bTblRecords"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
 
     <!-- ============ 概览 ============ -->
     <section class="page" id="page-overview">
@@ -223,7 +331,23 @@
   </div>
 </div>
 
+<!-- 批次策划案预览 -->
+<div id="bModal">
+  <div class="modal-box">
+    <div class="modal-head">
+      <h3 id="bmTitle">立项策划案</h3>
+      <div class="tools">
+        <a class="btn mini ghost" id="bmMd" href="#" target="_blank">下载 Markdown</a>
+        <a class="btn mini ghost" id="bmDocx" href="#">下载 Word</a>
+        <button class="btn mini ghost" id="bmClose">关闭</button>
+      </div>
+    </div>
+    <div class="modal-body" id="bmBody"></div>
+  </div>
+</div>
+
 <div id="toast"></div>
 <script src="{{ url_for('static', filename='app.js') }}"></script>
+<script src="{{ url_for('static', filename='batch.js') }}"></script>
 </body>
 </html>
