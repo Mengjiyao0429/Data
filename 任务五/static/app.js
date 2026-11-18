@@ -206,7 +206,7 @@
     const m = state.meta, cs = state.clusters;
     el('kpiRecords').textContent = fmt(m.total_records);
     el('kpiOpps').textContent = fmt(m.total_opportunities);
-    el('kpiOppsNote').textContent = '占采集总量 ' + m.opp_rate + '% · 阈值 0.56';
+    el('kpiOppsNote').textContent = '占采集总量 ' + m.opp_rate + '% · 阈值 0.50';
     el('kpiClusters').textContent = fmt(m.clusters);
     const top = cs[0];
     if (top) {

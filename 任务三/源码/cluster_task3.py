@@ -36,7 +36,7 @@ HEADER = ["采集批次号", "主题簇编号", "主题簇名称", "功能类别
           "簇内机会记录数", "来源覆盖", "簇内机会记录"]
 
 SEED = 42
-K_RANGE = list(range(12, 21))
+K_RANGE = list(range(10, 31))   # 机会记录扩至 1009 条后，候选 k 上限相应放宽至 30
 
 CURATED = {}
 _names_path = os.path.join(HERE, "curated_names.json")
@@ -235,7 +235,7 @@ def main():
             coh = npmi_coherence(X_bin, top, n)
             sizes = np.bincount(labels)
             balance = 1.0 - float(sizes.max()) / n
-            eval_rows.append((method, k, sil, db, ch, coh, balance))
+            eval_rows.append((method, k, sil, db, ch, coh, balance, int(sizes.min())))
 
     def norm(vals, lower=False):
         v = np.array(vals, dtype=float)
@@ -344,11 +344,12 @@ def main():
         w.writerows(out_rows)
 
     with open(REPORT, "w", encoding="utf-8") as f:
+        batch_list = sorted({m["采集批次号"] for m in metas})
         f.write("# 任务三 主题聚合报告（语义级 v3）\n\n")
-        f.write(f"- 输入机会记录：{n} 条（跨 B01–B05）\n")
+        f.write(f"- 输入机会记录：{n} 条（跨 {batch_list[0]}–{batch_list[-1]}，共 {len(batch_list)} 个批次）\n")
         f.write("- 向量化：jieba 中文分词（AI 术语词典）+ 英文词 → TF-IDF（ngram 1-2，min_df=2，max_df=0.6）\n")
         f.write(f"- 语义投影：TruncatedSVD(LSA)，维度 {svd_dim}，累计方差 {svd.explained_variance_ratio_.sum():.3f}\n")
-        f.write("- 候选：KMeans、层次聚类(Ward)，k∈{12..20}\n")
+        f.write(f"- 候选：KMeans、层次聚类(Ward)，k∈{{{K_RANGE[0]}..{K_RANGE[-1]}}}\n")
         f.write("- 评估方案：轮廓系数(0.20)+DB(0.20)+CH(0.15)+NPMI 主题一致性(0.30)+簇规模均衡度(0.15)，归一化加权\n")
         f.write(f"- 最终选优：KMeans，在“最大簇占比≤16%”约束下最大化 NPMI 主题一致性 → k={best_k}\n")
         f.write(f"- 稳定性(5 次随机种子两两 ARI 均值) = {stability:.3f}\n")
@@ -357,7 +358,7 @@ def main():
         f.write("| 方法 | k | 轮廓 | DB | CH | NPMI | 均衡 | 综合 |\n|---|---|---|---|---|---|---|---|\n")
         order = sorted(range(len(eval_rows)), key=lambda i: -composite[i])
         for i in order[:12]:
-            m, k, sil, db, ch, coh, bal = eval_rows[i]
+            m, k, sil, db, ch, coh, bal, _min = eval_rows[i]
             f.write(f"| {m} | {k} | {sil:.3f} | {db:.2f} | {ch:.1f} | {coh:.3f} | {bal:.2f} | {composite[i]:.3f} |\n")
         f.write("\n## 二、主题簇一览\n\n")
         f.write("| 簇 | 主题簇名称 | 功能类别 | 所属行业 | 记录数 | 主导批次 | 来源覆盖 |\n|---|---|---|---|---|---|---|\n")

@@ -2,12 +2,12 @@
 """任务四 · 机会价值评估与优先级排序（优化版）
 
 方法：
-  1) 三维度 0~100 评分：
-     ① 多源指向度 = 来源种类数 / 观测最大值(4)
-     ② 记录规模   = 簇内机会记录数 / 观测最大值(59)
+  1) 三维度 0~100 评分（分母取本批数据的实际观测最大值，随数据规模自适应）：
+     ① 多源指向度 = 来源种类数 / 观测最大来源数
+     ② 记录规模   = 簇内机会记录数 / 观测最大簇规模
      ③ 补充维度「商业信号」（复合指标，0~100）：
             0.6 × 互动热度分（真实互动热度，log1p 压缩归一化）
-          + 0.4 × 跨批次持续性分（簇覆盖 B01–B05 的批次数 / 5）
+          + 0.4 × 跨批次持续性分（簇覆盖的批次数 / 数据总批次数）
   2) 机会价值分 = 0.35×多源 + 0.35×规模 + 0.30×商业信号（保留 1 位小数）
   3) 优先级：价值分降序（1 最高），同分按记录规模降序
   4) 敏感性分析：3 组替代权重下的排名 Spearman 相关与 Top-5 集合稳定性
@@ -82,10 +82,10 @@ def main():
         heat_map[key] = sum(to_int(r[c]) for c in HEAT_COLS)
     max_heat = max(heat_map.values()) if heat_map else 1
 
-    # 2) 读任务三 14 簇
+    # 2) 读任务三簇
     clusters = list(csv.DictReader(open(RESULT3, encoding="utf-8-sig")))
 
-    scored = []
+    raw = []
     for r in clusters:
         members = [x.strip() for x in r["簇内机会记录"].split("；") if x.strip()]
         keys = []
@@ -97,12 +97,21 @@ def main():
         n_size = len(keys)
         heat = sum(heat_map.get(k, 0) for k in keys)
         n_batch = len({k[0] for k in keys})
+        raw.append((r, n_src, n_size, heat, n_batch))
 
+    # 归一化分母取“本批数据的实际观测最大值”，避免数据扩容后分数越界、也不写死旧数据的 59/5/4
+    max_src = max((x[1] for x in raw), default=1) or 1
+    max_size = max((x[2] for x in raw), default=1) or 1
+    total_batches = len({k[0] for k in src_map}) or 1
+    print(f"归一化分母：最大来源数={max_src}，最大簇规模={max_size}，批次数={total_batches}")
+
+    scored = []
+    for r, n_src, n_size, heat, n_batch in raw:
         # 三维度 0~100
-        src_score = 100.0 * n_src / 4.0
-        size_score = 100.0 * n_size / 59.0
+        src_score = 100.0 * n_src / max_src
+        size_score = 100.0 * n_size / max_size
         heat_score = 100.0 * math.log1p(heat) / math.log1p(max_heat)
-        persist_score = 100.0 * n_batch / 5.0
+        persist_score = 100.0 * n_batch / total_batches
         biz_score = 0.6 * heat_score + 0.4 * persist_score   # 商业信号复合
 
         value = BASE_W[0] * src_score + BASE_W[1] * size_score + BASE_W[2] * biz_score

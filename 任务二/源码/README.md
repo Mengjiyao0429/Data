@@ -1,6 +1,6 @@
 # 任务二源码说明
 
-> 当前版本适配**任务一更新后的 5517 条数据集**（B01–B05 五批次、12 个来源、新版表头与快照格式）。
+> 当前版本适配**任务一更新后的 8038 条数据集**（B01–B08 八批次、14 个来源、新版表头与快照格式）。
 
 ## 一、文件职责
 
@@ -24,7 +24,7 @@ python evaluate.py           # 生成 ../task2_质量评估报告.md
 ```
 
 依赖：Python 3.9+、openpyxl。无外部 API、无随机数，重复运行结果逐字节一致。
-5517 条规模完整运行约 1 分钟（快照读取带缓存）。
+8038 条规模完整运行约 3 分钟（快照读取带缓存）。
 
 ## 三、输入路径（自动识别）
 
@@ -45,7 +45,7 @@ python evaluate.py           # 生成 ../task2_质量评估报告.md
 
 | 参数 | 位置 | 默认 | 说明 |
 |---|---|---|---|
-| `DECISION_TAU` | `opportunity_classifier.py` | 0.56 | 机会判定阈值（人工标注集 F1 最优点） |
+| `DECISION_TAU` | `opportunity_classifier.py` | 0.50 | 机会判定阈值（按人工标注集敏感性分析校准，偏向召回） |
 | `NEED_GATE` | `opportunity_classifier.py` | 0.30 | **规则①前置门槛**：真实需求低于该值直接判 0 |
 | `W` | `opportunity_classifier.py` | R .36 / A .26 / F .22 / Q .16 | 四维权重 |
 | `DELTA_EXCL` | `opportunity_classifier.py` | 0.35 | 排除证据的最大扣减系数 |

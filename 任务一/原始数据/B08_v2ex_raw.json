@@ -1,0 +1,257 @@
+{
+ "fetched_at": "2026-11-18 13:20:21",
+ "record_count": 16,
+ "note": "公开接口原始返回清洗后的条目；text 为接口正文，未做改写；url 可逐条溯源",
+ "source": "V2EX",
+ "api": "https://www.v2ex.com/api/topics/{hot,show}.json",
+ "nodes": [
+  "openai",
+  "programmer",
+  "qna",
+  "python",
+  "share",
+  "ideas"
+ ],
+ "items": [
+  {
+   "source": "V2EX",
+   "native_id": "1257824",
+   "title": "Gemini Ultra 免费一个月？有 V 友领到了吗，想核对下条件",
+   "url": "https://www.v2ex.com/t/1257824",
+   "text": "刷到一个帖子，说 Gemini Ultra 可以免费用一个月，链接放评论区了\n\n原帖提到了先绑卡，但这张截图没截到实际领取入口，也没说明地区、新老用户这些限制，目前还不能确认具体条件。\n\n有 V 友领到过吗？想核对几个信息：\n- 哪个地区的账号，之前有没有订阅过？\n- 页面显示的是 Ultra 哪个档位？\n- 免费期结束后，续费金额是多少？\n有官方活动入口的也欢迎补充，大家可以对照自己的页面看看。\n\n顺便说明一下，我自己做 AI 会员代充。看到这种优惠也想弄清楚，能自己领到的朋友可以省一笔，订阅方面的问题也欢迎交流。",
+   "date": "2026-11-17",
+   "views": 0,
+   "score": 0,
+   "answers": 57,
+   "tags": [
+    "google"
+   ],
+   "query": "hot"
+  },
+  {
+   "source": "V2EX",
+   "native_id": "1257817",
+   "title": "如何合法合规的使用海外模型？",
+   "url": "https://www.v2ex.com/t/1257817",
+   "text": "打算 12 月回国旅游+过年，远程工作 2-3 个月。\nClaude 和 OpenAI 最近都更新了使用政策不允许在中国大陆地区调用模型，甚至 Amazon Bedrock 上的 Claude 现在也是管辖范围没法用了。\n\nClaude 就不想了，有没有什么比较正规的方式可以用其他比如 GPT 模型？\n我现在查下来 Azure 和 GitHub Copilot 好像可以，有没有类似经验的朋友？",
+   "date": "2026-11-17",
+   "views": 0,
+   "score": 0,
+   "answers": 53,
+   "tags": [
+    "qna"
+   ],
+   "query": "hot"
+  },
+  {
+   "source": "V2EX",
+   "native_id": "1257886",
+   "title": "[送码+抽奖] Fotilo：Mac 的截图+录屏软件（用心打磨了很久）",
+   "url": "https://www.v2ex.com/t/1257886",
+   "text": "大家好，我是 foam，我又做了一个 Mac app。\n\n前几天刚把 Fotilo 更新到了 1.1.0。这是一个 Mac 上的截图 + 录屏工具：如果你用过 Snipaste、CleanShot X、Shottr 这类截图 App，或者 Screen Studio 这类录屏 App，那么 Fotilo 差不多就是把这两类合在了一起。现在核心功能都打磨得挺不错了。所以请各位老哥来体验体验。\n\n官网和下载地址： https://fotilo.app/?utm_source=v2ex 。官网里有大部分功能的演示，也可以去看看。\n\n## 截图\n\n**原地标注**\n\n功能上大家都做得差不多，就不多说了（不对，Fotilo 还是有一些功能上的增强 hh）。Fotilo 的核心优势就是唤起速度非常快！即使内存压力大的时候，唤起仍然非常快。相信大家可能遇到过一些截图软件平时唤起很快，但是在某些情况下，按下快捷键后要等两三秒才出来。Fotilo 经过优化，解决了这个问题。\n\n\n![](https://i.v2ex.co/D5EZ03cW.png)\n\n\n\n**长截图**\n\n手动往下滚，它边滚边拼，网页顶部那种吸顶的导航栏不会傻乎乎地被重复印进图里。以前必须先滚回网页最顶上才能开始，现在哪怕你在页面最底下，从下往上滚也能拼。滚过头了，还可以往回滚回来。不想自己滚的话，也可以直接点「自动滚动」。\n\n![](https://i.v2ex.co/798momN5.png)\n\n\n至于其他的，一键打码， OCR 取字（⇧⌘O 框一下就能粘贴，扫到二维码直接给你提取链接）、截图钉在屏幕上当参考、冻结屏幕（专门用来截那种鼠标一松手就消失的下拉菜单）、自动递增的序号（中间插一步，后面的数字自动顺延）、截图翻译、拼图、水印、只擦一段笔画的橡皮擦……这些该有的全都有。\n\n## 录屏：这块我花的时间还蛮多的\n\n**自动放大**\n\n做软件演示的时候，自己手动打关键帧放大挺折腾的。Fotilo 的逻辑是：你鼠标点到哪，镜头就平滑地推到哪；你打一长行字，镜头就跟着光标从左往右走。而且我特意调教过防抖逻辑——随手点一下就切走的地方它不乱推，连着点几下也不会来回乱缩。录窗口时默认自带壁纸背景、圆角和阴影，直接就能发。（效果可以到官网看下哈）\n\n\n**配音翻译（这是我最想让大家玩玩看的）**\n\n有时候想发个英文演示视频去海外，但自己口语实在拿不出手。在 Fotilo 里，你直接用中文讲一遍，它能帮你配成英文（日文、西班牙文也行），而且用的是你自己的声音——你只需要照着一段稿子读一遍，它就能记住你的音色。\n\n语音识别和声音克隆全都在你本地的 Mac 上跑，录像不上传云端，也不用你自己去折腾填什么 API key（不过因为算力要求，配音功能目前只支持 Apple 芯片的 Mac）。\n\n![](https://i.v2ex.co/5qqK3Yq1.png)\n\n\n\n另外像自动生成字幕、一键剪掉录音里的「嗯」「那个」废话、人声降噪、还有背景音乐在有人说话时自动压低音量，这些剪辑里常用的功能也都做进去了。\n\n**让 AI 帮你剪辑**\n\n如果你平时也在用 Claude Code、Codex 或者 Cursor，可以试试这个玩法：接上 Fotilo MCP，直接用大白话跟它说「把这段录屏做成教程：剪掉开头空等，加片头片尾，关键操作放大，显示按键，每一步配一行说明」。它就能直接使用 Fotilo 编辑器里的样式和能力去修改视频。\n\n改完之后，你在时间线上照样能自己微调、拖动、删除，按 ⌘Z 随时撤回。它之所以能精准知道该放大哪里，是因为 Fotilo 录制时就把你的点击坐标、键盘输入全记下来了，不用 AI 像个瞎子一样一帧帧截图去猜。这个功能默认是关着的，怕打扰到不需要的人，想折腾的自己在设置里打开就行。\n\n![](https://i.v2ex.co/195G5H26.png)\n\n\n一个激活码能同时绑 3 台 Mac，买了 14 天内要是觉得不好用，随时找我退全款。\n\n**系统要求**：macOS 14 以上，M 芯片和 Intel 都能装（再次提醒：本地配音只有 M 芯片能用）。\n\n## 抽奖规则\n\n**到 11 月 20 日（周五）15:00 截止**：\n\n**1. 只要回帖留邮箱，就送一年「全能 Pro」**\n\n在这个帖子下面回复，直接留下你的邮箱（可 Base64 编码）。11 月 20 日 15:00 前的回复都有效。\n\n**2. 每 10 楼抽一个「全能 Pro 终身版」**\n\n**抽奖资格（满足一下 2 个条件）**：回帖包含\n\n1. 邮箱地址（可 base64 编码）\n2. **告诉我：你现在主力用什么截图 / 录屏工具？最希望 Fotilo 帮你解决哪一个痛点？**\n\n**抽奖算法**\n\n11 月 18、19、20 日这三天，每天下午 15:00 A 股收盘后开奖一次：**楼层号的尾数 = 当天上证指数收盘点数的最后一位**（小数点后第二位），直接送终身版。\n\n每次只算上一次开奖之后到当天 15:00 之间的回复（第一天从发帖开始算），15:00 之后回的算进第二天。\n\n举个例子：假如当天上证收在 3412.56，最后一位是 6，那这一段的 #6、#16、#26、#36…… 楼全部中奖。\n\n楼层号以我每次开奖时截图为准，名单当晚贴在楼里，激活码直接发到你留的邮箱里。\n\n\n**3. 没抽到奖或者愿意支持下我的朋友，可以 5 折购买终身版**\n\n到 12 月 31 日前，终身版直接半价，支持支付宝。就算你领了一年激活码，觉得好用想趁打折囤个终身也行：\n\n- 全能 Pro 终身, 折扣价 $19：https://fotilo.app/buy?plan=complete&term=lifetime&promo=V2EX\n- 截图 Pro 终身, 折扣价 $6：https://fotilo.app/buy?plan=screenshot&term=lifetime&promo=V2EX\n\n### 注意事项\n\n- 每个账号只认第一条回复，一个人开多个号只算一个\n- 我自己在楼里回复的楼层不算中奖，如果刚好抽中了我的楼层，就自动顺延到下一楼\n\n大家在下载、使用过程中遇到任何 bug，或者有什么奇奇怪怪的想法，欢迎 ping 我或发到 support@fotilo.app",
+   "date": "2026-11-18",
+   "views": 0,
+   "score": 0,
+   "answers": 49,
+   "tags": [
+    "create"
+   ],
+   "query": "hot"
+  },
+  {
+   "source": "V2EX",
+   "native_id": "1257899",
+   "title": "gpt-6.2-sol high 模式理解和执行能力真的上了一大截",
+   "url": "https://www.v2ex.com/t/1257899",
+   "text": "# 提示词\n创建一个 HTML ，内容是一张精细的 SVG 图片，画面是鹈鹕骑着自行车穿过故宫门，故宫门高 1.9999 米，车座椅高 0.5249 米，鹈鹕脖子以下 0.4751 米，脖子长 1.1011 米，让它摆好姿势能坐着车座椅成功骑车穿过门，做成 2D 动画版本，不要测试。\n\n# 执行的结果\n\n最下面有 html 动画\n\nhttps://p.kuraa.cc/api/files/content/VKXXItMYrZfmzcozBf3hyQ/preview",
+   "date": "2026-11-18",
+   "views": 0,
+   "score": 0,
+   "answers": 0,
+   "tags": [
+    "openai"
+   ],
+   "query": "openai"
+  },
+  {
+   "source": "V2EX",
+   "native_id": "1257861",
+   "title": "6.2 Astra 和 6.2 Sol 的使用体验让我事后更加偏爱 Claude 的模型",
+   "url": "https://www.v2ex.com/t/1257861",
+   "text": "而且 Artificial Analysis 的跑分也确实依旧是 Claude 的模型更高，不得不说，OAI 近两个月真是不思进取",
+   "date": "2026-11-17",
+   "views": 0,
+   "score": 0,
+   "answers": 4,
+   "tags": [
+    "openai"
+   ],
+   "query": "openai"
+  },
+  {
+   "source": "V2EX",
+   "native_id": "1257857",
+   "title": "这就突然端出来了？GPT-6.2 Astra 和 Sol 现已可用",
+   "url": "https://www.v2ex.com/t/1257857",
+   "text": "原贴：https://x.com/OpenAI/status/2122750124543926515",
+   "date": "2026-11-17",
+   "views": 0,
+   "score": 0,
+   "answers": 0,
+   "tags": [
+    "openai"
+   ],
+   "query": "openai"
+  },
+  {
+   "source": "V2EX",
+   "native_id": "1257856",
+   "title": "GPT-6.2 Astra & Sol 发布了",
+   "url": "https://www.v2ex.com/t/1257856",
+   "text": "https://openai.com/index/introducing-gpt-6-2-astra-sol/\n\nhttps://i.imgur.com/PW1vRTV.png",
+   "date": "2026-11-17",
+   "views": 0,
+   "score": 0,
+   "answers": 15,
+   "tags": [
+    "openai"
+   ],
+   "query": "openai"
+  },
+  {
+   "source": "V2EX",
+   "native_id": "1257641",
+   "title": "ChatGPT Pro 用户每月可获得 $100 OpenAI API 调用额度?",
+   "url": "https://www.v2ex.com/t/1257641",
+   "text": "刚收到邮件，这个 100 刀是可以在应用里调用的吧，不是 Codex/ChatGPT 额度？\n\nHi,\nYour ChatGPT Pro plan now includes $100 in API credits each month. Put them to work building with the OpenAI API, whether that’s a personal tool, something for your team, or a new product for your users.\nTo activate your credits:\nOpen Settings → Billing in ChatGPT and select the API credits benefit.\nChoose an API organization you own. It should have the same email as your ChatGPT account.\nReview your credit amount and confirm.\nActivate your API credits\nThe quickest way to start is with the OpenAI Developers plugin in Codex. It helps you set up an API key, find the right documentation, and figure out how to use the OpenAI API in what you’re building.\nGet the OpenAI Developers plugin\nUnused credits expire at the end of each billing month and can’t be used to power Codex API key usage.\nHappy building!",
+   "date": "2026-11-17",
+   "views": 0,
+   "score": 0,
+   "answers": 5,
+   "tags": [
+    "openai"
+   ],
+   "query": "openai"
+  },
+  {
+   "source": "V2EX",
+   "native_id": "1257828",
+   "title": "Gemini Carbon 很强，但是 Antigravity CLI 就是登录不上怎么办",
+   "url": "https://www.v2ex.com/t/1257828",
+   "text": "买了 20 块会员，兴冲冲装上，没想到说我地区不支持。claude code 都没问题。",
+   "date": "2026-11-17",
+   "views": 0,
+   "score": 0,
+   "answers": 18,
+   "tags": [
+    "programmer"
+   ],
+   "query": "programmer"
+  },
+  {
+   "source": "V2EX",
+   "native_id": "1257888",
+   "title": "Grok 和 ChatGPT 哪个合适？",
+   "url": "https://www.v2ex.com/t/1257888",
+   "text": "现在国内我订阅的 Kimi，但是有时候速度太慢，难受，国外除了 Claude，主要考虑 Grok 和 ChatGPT，现在我订阅的是 Grok，比较好的是 Grok、Cursor、X 这三个点会员打通了，但是不是 ChatGPT 的通用性更强？有没有俩个都长期使用过的，Grok 的 Bot 确实挺好用，完成一些任务比较好。",
+   "date": "2026-11-18",
+   "views": 0,
+   "score": 0,
+   "answers": 9,
+   "tags": [
+    "qna"
+   ],
+   "query": "qna"
+  },
+  {
+   "source": "V2EX",
+   "native_id": "1246447",
+   "title": "wreq- Python ：重写协程桥接后的性能提升",
+   "url": "https://www.v2ex.com/t/1246447",
+   "text": "国庆闲来无事，跑了一下 wreq-python 和其他 Python HTTP 客户端的 HTTPS 性能基准，发现自己的结果不太理想，于是顺着火焰图查了一下瓶颈。\n\n项目地址：\nhttps://github.com/0x676e67/wreq-python\n\n之前通过 PyO3 和 pyo3-async-runtimes 做异步桥接，性能其实已经不错，但在这套实现里，反复获取 GIL 带来的额外开销和争用，还是影响了性能。\n\n后来请 Claude 帮忙分析火焰图和几个主要耗时点，再把自己的思路和 PyO3 原生协程的实现作为参考，重写并优化了这部分桥接逻辑。咱也用 AI ，分析这些确实能省不少精力。\n\n优化方向是有预期的，不过最后提升这么大，还是有点意外。下面贴一下基准结果，其中 ry 和 pyreqwest 也都是 Rust reqwest HTTP 客户端的 Python 绑定。\n\nHTTP/1.1 的基准看看就好。wreq/reqwest 的连接池默认不限制连接数，并发时会打开很多连接； ry/pyreqwest 的默认配置有没有类似限制，我不确定。所以这部分结果就图个乐。\n\nHTTP/2 这部分则都是在单个连接上并发请求。\n\n完整的基准测试数据与源码：\nhttps://python.wreq.org/en/latest/benchmark/\n\nhttps://i.imgur.com/tUZabs7.png\n\nhttps://i.imgur.com/49lBMxN.png",
+   "date": "2026-10-05",
+   "views": 0,
+   "score": 0,
+   "answers": 2,
+   "tags": [
+    "python"
+   ],
+   "query": "python"
+  },
+  {
+   "source": "V2EX",
+   "native_id": "1245343",
+   "title": "Python 潮流周刊#169： AI 用 11 天证完费马大定理、 Python 拟加 export 关键字、一个 Key 调 3000 个工具",
+   "url": "https://www.v2ex.com/t/1245343",
+   "text": "本周刊由 Python 猫 出品，精心筛选国内外的 400+ 信息源，为你挑选最值得分享的文章、教程、开源项目、软件工具、播客和视频、热门话题等内容。愿景：帮助所有读者精进 Python 技术，并增长职业和副业的收入。\n\n**重要提示：** 本期有读者福利抽奖活动，**满 100 人自动开奖**，奖品是一份**周刊专栏的年度订阅码**。参与方式：给公众号 **Python 猫** 发送数字“**6666**”，获取抽奖小程序码。\n\n**温馨提示：** 在微信关注 **Python 猫**，发送数字“**9**”，即可领取 9 折优惠码，订阅专栏可享 15 元优惠。\n\n去专栏阅读全文：[全文链接]( https://xiaobot.net/post/4d45bca2-d85c-4fd0-a4da-8b1ec5698ffc)\n\n分享了 12 篇文章，12 个开源项目\n\n以下是本期标题摘要：\n\n**[🦄文章&教程]( https://weekly.pythoncat.top)**\n\n\n① 停笔四年后复出，聊聊 export 关键字（ PEP 842 与 843 ）\n\n② UnboundLocalError 不是变量缺失，而是作用域早已定好\n\n③ Protocol 还是 ABC ？设计可插拔的 provider 接口\n\n④ PEP 847：给 Simple Repository API 定义错误详情\n\n⑤ Django 通过 DEP 19 ，技术治理大幅精简\n\n⑥ PyLadiesCon 门户被灌入 2249 个假账号\n\n⑦ MongoDB 迁移用 Python 写\n\n⑧ 如何高效审查 AI 生成的 Python 代码\n\n⑨ 用 25 行 Python 复刻 Jev\n\n⑩ 一个智能体做数据科学的故事\n\n⑪ 把研究论文改造成可交互、可复现的智能体\n\n⑫ 费马大定理的首个机器可验证证明\n\n**[🐿️项目&资源]( https://weekly.pythoncat.top)**\n\n\n① wrapture：不改源码，给调用点挂 binding 做补丁与追踪\n\n② nonebot2：跨平台 Python 异步聊天机器人框架\n\n③ datamodel-code-generator：从 schema 定义生成 Python 数据模型\n\n④ GLiNER2：一份 schema 统一信息抽取与文本分类\n\n⑤ autoclip：把长视频变成值得分享的精彩片段\n\n⑥ a-stock-data：A 股全栈数据工具包\n\n⑦ jev-ultrafast：给浏览器智能体一套索引化的动作空间\n\n⑧ kev：能自己训练、本地跑的 Jev 式决策小模型\n\n⑨ engrim：给 AI 编程智能体一份跨模型共享的本地记忆\n\n⑩ treg：给智能体一份开箱即用的工具目录\n\n⑪ VoiceMem：为语音智能体补上流式双脑记忆\n\n⑫ PixelRAG：用网页截图代替文本做检索\n\n\n\n周刊实行付费订阅制，年费 148 元，平均每天 4 毛钱，为你精准筛选高质量技术内容。在信息洪流中为你淘金，助力技术视野拓展和职业发展，欢迎订阅：[https://xiaobot.net/p/python_weekly]( https://xiaobot.net/p/python_weekly)\n\n订阅后，可免费查看 第 169 期周刊的全文： https://xiaobot.net/post/4d45bca2-d85c-4fd0-a4da-8b1ec5698ffc\n\n[Python 潮流周刊第 3 季总结，附电子书下载]( https://pythoncat.top/posts/2025-04-20-sweekly)\n\n[Python 潮流周刊第二季完结（ 31~60 ）]( https://pythoncat.top/posts/2025-04-20-iweekly)\n\n[Python 潮流周刊第一季精华合集（ 1~30 ）]( https://pythoncat.top/posts/2023-12-11-weekly)\n\n**微信关注 Python 猫**：[https://img.pythoncat.top/python_cat.jpg]( https://img.pythoncat.top/python_cat.jpg)",
+   "date": "2026-09-28",
+   "views": 0,
+   "score": 0,
+   "answers": 0,
+   "tags": [
+    "python"
+   ],
+   "query": "python"
+  },
+  {
+   "source": "V2EX",
+   "native_id": "1241944",
+   "title": "[开源] CNEquity：自托管 A 股 Parquet 数据湖（日更 / PIT / 防幸存者偏差 / MCP）",
+   "url": "https://www.v2ex.com/t/1241944",
+   "text": "做回测/研究时最烦的不是「拉一次数」，而是口径长期一致：复权、退市股、历史成分、PIT ，每个脚本自己拼很快就分叉。\n\n开源了 CNEquity：把多源 A 股数据落到本地 Parquet 湖，可日更、可复查、行级溯源。不给交易信号，只做数据底座。\n\n和常见工具的分工大概是：\n- AkShare 等：怎么调数据源\n- Tushare：云端（要积分/token ）\n- Qlib / vn.py：研究或交易平台\n- CNEquity：中间的本地湖 + 日更编排\n\n几个点：\n- 42 个数据集（行情 / 基本面 / 资金 / 公告 / 指数行业 / 宏观风险等）\n- 复权、历史成分、PIT 统一在 load()\n- 保留退市股（ README 里有个等权持有实验：有无退市股，2016–2021 收益 5.9% vs 12.0%）\n- 零注册、零 API Token ； pip 就能试\n- 可选 MCP ，把本地湖只读挂给 AI Agent\n- cne serve 只读运维台看水位和审计\n\n30 秒：\n\npip install cnequity\n\ncne demo\n\n仓库： https://github.com/rootSunc/CNEquity\n文档： https://rootsunc.github.io/CNEquity/\n\n个人维护，Apache-2.0 。代码开源。\n\n欢迎试用、提 issue 。如果帮你省了搭底座的时间，顺手点个 star 也行。\n有在用 AkShare 现场拉数做多年回测的，也想听听你们最痛的是哪一块。",
+   "date": "2026-09-14",
+   "views": 0,
+   "score": 0,
+   "answers": 8,
+   "tags": [
+    "python"
+   ],
+   "query": "python"
+  },
+  {
+   "source": "V2EX",
+   "native_id": "1257953",
+   "title": "来试试这个提示词，看模型能做出来什么",
+   "url": "https://www.v2ex.com/t/1257953",
+   "text": "```\n充分发挥你最顶级的审美、艺术设计和 3D 编程能力，在构图、光影、材质、粒子、动画和空间氛围上做到极致。画面需要有令人震撼的视觉表现力，并且可以通过鼠标自由交互。不限制你的创意和技术方案，尽可能展示你的能力上限。\n```\n\n---\n\nAntigravity + Gemini 4 Carbon High\n\n产出：[事件视界](https://kpaxian.io/uni)",
+   "date": "2026-11-18",
+   "views": 0,
+   "score": 0,
+   "answers": 1,
+   "tags": [
+    "share"
+   ],
+   "query": "share"
+  },
+  {
+   "source": "V2EX",
+   "native_id": "1257878",
+   "title": "装了一年 SKILLS，我用 SkillDeck 做了次体检",
+   "url": "https://www.v2ex.com/t/1257878",
+   "text": "![](https://cdn.jsdelivr.net/gh/crossoverJie/images@main/images/images20261116175455528.png)\n\n\n\n距离 SKILLS 发布已经快有一年的时间了，记得刚发布那时候我和其他人一样都觉得这真是一个天才般的产品设计，让个人或公司可以将自己的某个业务打包成一个 SKILLS 供其他人调用。\n\n甚至后面随着各大科技公司的裁员进行，离职的提炼自己的 SKILLS 也上过一段时间热搜，甚至还有调侃：离职的同事没有消失，只是住进了服务器里。\n\n\n当时装了很多 SKILLS 有用没用的都是一股脑的安装，比如出名的 superpower，ponytail，grill-me 等等。\n\n可是用了一段时间之后也没发现效果有多好，这其中我总结有以下几个原因：\n\n### SKILLS 太多，对 AI 造成的干扰太大。\n\n我们都知道 SKILLS 的触发原理，每次和 LLM 的对话都会带上所有的 SKILL 的描述内容，让 LLM 根据对话的上下文选择使用哪个 skill，这个步骤对我们用户来说是黑盒，是否能选中你想要的那个 SKILLS 全靠 LLM 说了算。\n\n而我们的 SKILLS 越多，SKILLS describe 里塞的内容也就越多，特别是一些功能类似的 SKILLS ，比如都是做 UI 设计的，都是做 Java 语法的，反而增大了大模型选中 SKILLS 的难度，有可能这次选择的是 A 进行触发，第二次选择了 B 触发，而两个 SKILLS 的具体操作步骤又不相同，从而导致实际做事的质量下降。\n\n\n### 大模型能力越来越强，逐渐替代了一些常见的 SKILLS\n\n再 SKILLS 这个概念被 anthropic 提出的时候模型能力确实没那么强，或者说训练的语料也没有那么全。\n\n当时也流行一种说法：我们将自己的擅长的领域打包成 SKILLS 之后本质上就是让大模型学习我们的技能从而将我们替代掉。\n\nAI 发展到现在，确实已经吸收了很多优秀的 SKILLS 了，直接将这些 SKILLS 都训练到模型本身了。\n\n也就是说对于一些常见的需求可能都不需要 SKILLS，比如一个标准的前端设计，iOS app 设计等。\n\n如果我们还带上这些 SKILLS 可能也会造成和刚才提到的问题类似，对上下文造成污染。\n\n\n\n直到有一天我 之前做的 [SkillDeck](https://github.com/crossoverJie/SkillDeck)(一个对本地 SKILLS 进行增删改查的小工具) 收到了一个 [PR](https://github.com/crossoverJie/SkillDeck/pull/61)：\n![[Pasted image 20261116230159.png]]\n\n可以统计 codex 的对不同 SKILLS 的使用情况，收到这个启发之后我将其余的 Agent 也加上了这样的统计。\n\n![](https://cdn.jsdelivr.net/gh/crossoverJie/images@main/images/images20261116175455528.png)\n\n\n这样在 SkillDeck 的首页就可以看到哪些 SKILLS 经常被使用，同时哪些 SKILLS 安装之后一次都没有调用过，这样的 SKILLS 是否可以考虑直接删除了。\n\n\n### 其他更新\n\n除此之外 SkillDeck 还更新几个新功能：\n\n![](https://cdn.jsdelivr.net/gh/crossoverJie/images@main/images/images20261117095023266.png)\n\n可以将某一个 SKILLS 针对所有的 Agent 全局开关，方便我们测试 skill 的能力是否符合要求。\n\n#### 一键批量更新 SKILLS\n![](https://cdn.jsdelivr.net/gh/crossoverJie/images@main/images/images20261117145417652.png)\n我们的 Agent 通常不会检测 SKILLS 是否有更新，SKILLS 较多的时候一个个查看也比较费劲，虽然可以手动通过 Agent 批量更新所有的 SKILLS，现在集成到一个可视化入口里会更加方便。\n\n项目开源，MIT 协议，欢迎 star/issue/PR：[GitHub](https://github.com/crossoverJie/SkillDeck) | [项目主页](https://crossoverjie.top/SkillDeck/)\n\n安装方式：\n\n```bash\nbrew tap crossoverJie/skilldeck && brew install --cask skilldeck\n```",
+   "date": "2026-11-18",
+   "views": 0,
+   "score": 0,
+   "answers": 8,
+   "tags": [
+    "share"
+   ],
+   "query": "share"
+  },
+  {
+   "source": "V2EX",
+   "native_id": "1253273",
+   "title": "怎么才能用 ai 搜索到更多的情报呢",
+   "url": "https://www.v2ex.com/t/1253273",
+   "text": "我发现一个很大的问题，大家包括我都会觉得 agent 搜索的能力很强，遇到什么事情就会让其进行调研\n\n诚然 agent 能解决多数时候的浅搜索，但诸如“想要找到尽可能多的被动收入开发者平台”这样的问题，ai 似乎只会给几个出名的大平台，让人不是很满意。\n\n到底是什么导致了这个问题呢，我和 gemini-4 聊了聊，意识到这是 agent 的 search 工具的缘故，其基本遵循了搜索引擎的最优结果。这就导致了 seo 做的好的平台也会被 search 推荐，agent 给出的结果也就只剩下大平台了。\n\n不过，seo 好的结果并不一定是我们需要的结果，正如我上面举的找被动收入平台的例子\n\n那怎么才能拖出 seo 进行搜索呢？我了解到市面上有一些网页向量搜索产品（这里不具体推荐），能够返回和标的网页语意相似度高的页面\n\n于是我设计一个如下流程，能某种程度缓解信息的集中。应该在想要尽可能发散搜索消息时很有用，即\n\n`根网页->向量搜索 N 个相似的网页->AI 筛选和意图相关的 n 个网页->继续基于这 n 个网页进行向量搜索扩展`\n\n\n我测试了找被动收入平台的例子，找到了几十个可能有关的网站，部分甚至刚准备上线或者还处于测试阶段。这满足了我对这个 case 的期待。\n\n来这分享给大家，说不定有些许启发",
+   "date": "2026-10-30",
+   "views": 0,
+   "score": 0,
+   "answers": 5,
+   "tags": [
+    "ideas"
+   ],
+   "query": "ideas"
+  }
+ ]
+}

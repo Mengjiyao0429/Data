@@ -32,7 +32,7 @@
         │  fetch / JSON，请求头带 X-Role
         ▼
 Flask 服务 app.py
-   ├── core/datastore.py   读取 result1–4，装配 14 个主题簇与证据记录
+   ├── core/datastore.py   读取 result1–4，装配 30 个主题簇与证据记录
    ├── core/db.py          SQLite：settings / selections / proposals / audit
    ├── core/llm.py         模型调用：template / openai 兼容 / ollama
    └── core/proposal.py    提示词 + 严格校验 + 离线模板兜底 + Word 导出
@@ -42,9 +42,9 @@ Flask 服务 app.py
 
 ## 三、数据来源（全部为仓库内真实结果）
 
-- 任务一 `结果/result1.csv`：5,517 条采集记录、5 个批次、12 个来源
-- 任务二 `结果/result2.csv`：388 条机会（7.0%）
-- 任务三 `结果/result3.csv`：14 个主题簇
+- 任务一 `结果/result1.csv`：8,038 条采集记录、8 个批次、14 个来源
+- 任务二 `结果/result2.csv`：986 条机会（12.3%）
+- 任务三 `结果/result3.csv`：30 个主题簇
 - 任务四 `结果/result4_中间指标.json`：三维度得分、价值分、优先级、权重
 
 系统启动时一次性装配并缓存，不复制、不改写原始结果。
@@ -134,7 +134,7 @@ python .\任务五\app.py
 
 ## 十、验收步骤
 
-1. 启动后打开首页，概览 4 张图与 KPI 有数（5,517 / 388 / 14）。
+1. 启动后打开首页，概览 4 张图与 KPI 有数（8,038 / 986 / 30）。
 2. 机会选取页筛选「≥3 个来源」，表格实时收敛；点行打开抽屉，证据记录可点开真实链接。
 3. 点「生成立项策划案」，弹窗出现十章节 Markdown；点「下载 Markdown」「下载 Word」得到文件。
 4. 刷新页面后「策划案库」仍有该记录（SQLite 持久化）。
