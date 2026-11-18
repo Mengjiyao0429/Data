@@ -31,78 +31,70 @@
       loaded = true;
       const mk = (id) => { const c = echarts.init(el(id)); charts[id] = c; return c; };
 
-      // ===== 全流程转化 · 三种可视化组合（替换传统漏斗）=====
+      // ===== 全流程转化 · 彩色桑基流向 + 环形占比 =====
       const stages = d.funnel || [];
       const total = stages.length ? stages[0].value : 1;
       const sk = d.sankey || { nodes: [], links: [] };
 
-      // (1) 桑基流向图：采集 → 机会/非机会 → 各主题簇，宽度即规模
+      // 科研调色板：高辨识度多色，节点与流向按主题着色
+      const SK = {
+        '采集清洗去重': '#2563eb',   // 靛蓝
+        'AI应用机会':   '#0d9488',   // 青绿
+        '未构成机会':   '#94a3b8',   // 灰蓝
+        '其他机会':     '#64748b',
+      };
+      const TOP_COLORS = ['#e11d48', '#7c3aed', '#ea580c', '#0891b2', '#16a34a',
+                          '#d946ef', '#ca8a04', '#4f46e5', '#db2777', '#0d9488'];
+      const nodeColor = (name, idx) => SK[name] || TOP_COLORS[(idx - 3 + TOP_COLORS.length) % TOP_COLORS.length];
+
+      // (1) 彩色桑基流向图：采集 → 机会/非机会 → 各主题簇，宽度即规模
+      const skNodes = sk.nodes.map((n, i) => ({ ...n, itemStyle: { color: nodeColor(n.name, i) } }));
+      const skLinks = sk.links.map((l) => ({
+        ...l,
+        lineStyle: { color: nodeColor(l.target, sk.nodes.findIndex((n) => n.name === l.target)) },
+      }));
       mk('insFunnel').setOption({
+        backgroundColor: 'transparent',
         tooltip: { trigger: 'item', triggerOn: 'mousemove',
           formatter: (p) => p.dataType === 'edge'
-            ? `${p.data.source} → ${p.data.target}<br/>${p.data.value.toLocaleString()} 条`
-            : `${p.name}` },
+            ? `<b>${p.data.source} → ${p.data.target}</b><br/>${p.data.value.toLocaleString()} 条`
+            : `<b>${p.name}</b>` },
         series: [{
-          type: 'sankey', left: 8, right: 96, top: 12, bottom: 12,
-          data: sk.nodes, links: sk.links,
-          nodeWidth: 16, nodeGap: 10, draggable: false,
+          type: 'sankey', left: 10, right: 116, top: 14, bottom: 14,
+          data: skNodes, links: skLinks,
+          nodeWidth: 18, nodeGap: 11, draggable: false,
           emphasis: { focus: 'adjacency' },
-          label: { color: '#33445a', fontSize: 11, fontWeight: 500 },
-          lineStyle: { color: 'gradient', opacity: 0.42, curveness: 0.5 },
-          itemStyle: { borderWidth: 0, color: (p) =>
-            p.name === '采集清洗去重' ? '#3E6FB0'
-            : p.name === 'AI应用机会' ? '#5C9E6E'
-            : p.name === '未构成机会' ? '#B9C4D1'
-            : ['#4F81BD', '#E08A4B', '#7BA24A', '#9B7EBD', '#3F9DB3', '#C0504D', '#8AA0B6', '#7BA24A', '#5DA89A', '#E8894A'][(p.dataIndex - 3) % 10] },
+          label: { color: '#1e293b', fontSize: 11, fontWeight: 500 },
+          lineStyle: { opacity: 0.34, curveness: 0.52 },
+          itemStyle: { borderWidth: 0 },
         }],
       });
 
-      // (2) 环形进度：机会率 / 簇覆盖率 / 高价值率 三层同心环
+      // (2) 环形进度：机会率 / 簇覆盖率 / 高价值方向 三层同心环
       const opp = stages[1] ? stages[1].value : 0;
       const clu = stages[2] ? stages[2].value : 0;
       const oppRate = total ? +(opp / total * 100).toFixed(1) : 0;
       const covRate = opp ? +(clu / opp * 100).toFixed(1) : 0;
       const valRate = opp ? +(Math.min(clu, opp) / opp * 100).toFixed(1) : 0;
       mk('insFunnelRate').setOption({
+        backgroundColor: 'transparent',
         tooltip: { trigger: 'item', formatter: (p) => `${p.seriesName}<br/>${p.value}%` },
-        legend: { bottom: 0, itemWidth: 12, itemHeight: 8, textStyle: { fontSize: 10, color: '#5b6b7c' } },
+        legend: { bottom: 2, itemWidth: 12, itemHeight: 8, textStyle: { fontSize: 11, color: '#64748b' } },
         series: [
-          { name: '机会率', type: 'pie', radius: ['72%', '86%'], center: ['50%', '44%'], silent: true,
+          { name: '机会率', type: 'pie', radius: ['72%', '88%'], center: ['50%', '44%'], silent: true,
             label: { show: false }, labelLine: { show: false },
-            data: [{ value: oppRate, itemStyle: { color: '#5C9E6E' } },
-                   { value: 100 - oppRate, itemStyle: { color: '#eef2f7' } }] },
-          { name: '簇覆盖率', type: 'pie', radius: ['52%', '66%'], center: ['50%', '44%'], silent: true,
+            data: [{ value: oppRate, itemStyle: { color: '#0d9488' } },
+                   { value: 100 - oppRate, itemStyle: { color: '#e8eef4' } }] },
+          { name: '簇覆盖率', type: 'pie', radius: ['52%', '68%'], center: ['50%', '44%'], silent: true,
             label: { show: false }, labelLine: { show: false },
-            data: [{ value: covRate, itemStyle: { color: '#4F81BD' } },
-                   { value: 100 - covRate, itemStyle: { color: '#eef2f7' } }] },
-          { name: '高价值方向', type: 'pie', radius: ['30%', '44%'], center: ['50%', '44%'],
+            data: [{ value: covRate, itemStyle: { color: '#2563eb' } },
+                   { value: 100 - covRate, itemStyle: { color: '#e8eef4' } }] },
+          { name: '高价值方向', type: 'pie', radius: ['30%', '46%'], center: ['50%', '44%'],
             label: { show: true, position: 'center', formatter: () => `{a|${oppRate}%}\n{b|机会占比}`,
-              rich: { a: { fontSize: 26, fontWeight: 700, color: '#2E5C8A', lineHeight: 34 },
-                      b: { fontSize: 11, color: '#5b6b7c' } } },
-            data: [{ value: valRate, itemStyle: { color: '#E08A4B' } },
-                   { value: 100 - valRate, itemStyle: { color: '#eef2f7' } }] },
-        ],
-      });
-
-      // (3) 阶梯瀑布：逐级收窄的下降台阶，标注每级数值与保留率
-      const wfNames = stages.map((s) => s.name);
-      const wfVals = stages.map((s) => s.value);
-      const wfColors = ['#3E6FB0', '#5C9E6E', '#E08A4B'];
-      mk('insWaterfall').setOption({
-        tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' },
-          formatter: (ps) => ps.filter((p) => p.seriesName !== '占位').map((p) =>
-            `${p.name}<br/>${p.value.toLocaleString()} 条 · 保留 ${(p.value / total * 100).toFixed(1)}%`).join('<br/>') },
-        grid: { left: 92, right: 56, top: 24, bottom: 30 },
-        xAxis: { type: 'value', max: total, axisLabel: { show: false }, splitLine: { show: false }, axisTick: { show: false } },
-        yAxis: { type: 'category', inverse: true, data: wfNames,
-          axisLabel: { color: '#33445a', fontSize: 11, fontWeight: 500 }, axisLine: { show: false }, axisTick: { show: false } },
-        series: [
-          { name: '占位', type: 'bar', stack: 'wf', silent: true, itemStyle: { color: 'transparent' },
-            data: wfVals.map((v, i) => total - v), barWidth: 26 },
-          { name: '规模', type: 'bar', stack: 'wf', barWidth: 26,
-            label: { show: true, position: 'right', color: '#33445a', fontSize: 11, fontWeight: 600,
-              formatter: (p) => `${wfVals[p.dataIndex].toLocaleString()} · ${(wfVals[p.dataIndex] / total * 100).toFixed(1)}%` },
-            data: wfVals.map((v, i) => ({ value: v, itemStyle: { color: wfColors[i % wfColors.length], borderRadius: [0, 5, 5, 0] } })) },
+              rich: { a: { fontSize: 30, fontWeight: 700, color: '#0f766e', lineHeight: 36 },
+                      b: { fontSize: 11, color: '#64748b' } } },
+            data: [{ value: valRate, itemStyle: { color: '#ea580c' } },
+                   { value: 100 - valRate, itemStyle: { color: '#e8eef4' } }] },
         ],
       });
 

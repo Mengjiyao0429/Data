@@ -5,34 +5,87 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>登录 · AI 应用场景机会评估系统</title>
 <link rel="icon" href="data:,">
-<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 <style>
-  .login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;background:var(--color-background-tertiary,#f5f7fa)}
-  .login-card{width:100%;max-width:400px;background:#fff;border:1px solid #e3e8ef;border-radius:16px;padding:32px;box-shadow:0 8px 30px rgba(20,40,80,.06)}
-  .login-card h1{font-size:19px;font-weight:500;margin:0 0 6px;color:#1f2d3d}
-  .login-card p.sub{font-size:12px;color:#8091a5;margin:0 0 24px}
-  .login-card .row{margin-bottom:16px}
-  .login-card label{display:block;font-size:12px;color:#5b6b7f;margin-bottom:6px}
-  .login-card input{width:100%;box-sizing:border-box;padding:10px 12px;border:1px solid #d7dfe9;border-radius:8px;font-size:14px;outline:none}
-  .login-card input:focus{border-color:#3a7bd5}
-  .login-card button{width:100%;padding:11px;border:0;border-radius:8px;background:#1f6feb;color:#fff;font-size:14px;cursor:pointer;margin-top:6px}
-  .login-card button:hover{background:#1a5fd0}
-  .login-err{font-size:12px;color:#c0392b;min-height:18px;margin-top:8px}
-  .login-hint{font-size:11px;color:#9aa7b6;margin-top:18px;line-height:1.7;border-top:1px dashed #e3e8ef;padding-top:14px}
+  :root{--brand:#0e2740;--accent:#1a7f8e;--ink:#16283c;--muted:#6b8299}
+  *{box-sizing:border-box}
+  body{margin:0;min-height:100vh;font-family:"Inter","Microsoft YaHei","Segoe UI",system-ui,sans-serif;
+    color:var(--ink);display:flex;align-items:center;justify-content:center;padding:24px;
+    background:linear-gradient(150deg,#0b1f33 0%,#123650 45%,#0e5c66 100%);position:relative;overflow:hidden}
+  body::before{content:"";position:absolute;inset:0;
+    background:radial-gradient(60% 80% at 85% 15%,rgba(45,212,191,.18),transparent 60%),
+               radial-gradient(50% 60% at 10% 90%,rgba(37,99,166,.28),transparent 60%)}
+  body::after{content:"";position:absolute;inset:0;opacity:.16;
+    background-image:linear-gradient(rgba(255,255,255,.12) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.12) 1px,transparent 1px);
+    background-size:44px 44px;mask-image:radial-gradient(circle at 50% 50%,#000,transparent 75%)}
+  .wrap{position:relative;z-index:2;width:100%;max-width:920px;display:grid;grid-template-columns:1.05fr .95fr;
+    background:#fff;border-radius:18px;overflow:hidden;box-shadow:0 24px 70px rgba(3,15,28,.4)}
+  .intro{padding:48px 44px;color:#fff;background:linear-gradient(160deg,#0f2b45,#114a5a);
+    display:flex;flex-direction:column;position:relative;overflow:hidden}
+  .intro::before{content:"";position:absolute;width:280px;height:280px;border:1px solid rgba(94,234,212,.16);
+    border-radius:50%;right:-90px;top:-70px}
+  .intro::after{content:"";position:absolute;width:200px;height:200px;border:1px solid rgba(94,234,212,.12);
+    border-radius:50%;right:-40px;top:-20px}
+  .logo{width:46px;height:46px;border-radius:13px;display:grid;place-items:center;
+    background:linear-gradient(135deg,#2dd4bf,#2563a6);box-shadow:0 8px 20px rgba(45,212,191,.3)}
+  .logo svg{width:26px;height:26px}
+  .intro h1{font-size:24px;font-weight:600;line-height:1.4;margin:30px 0 10px;letter-spacing:.3px}
+  .intro .en{font-size:11px;letter-spacing:2.4px;color:#5eead4;text-transform:uppercase;margin-bottom:20px}
+  .intro p{font-size:13px;color:#a9c6da;line-height:1.9;margin:0}
+  .intro .feats{margin-top:auto;display:flex;flex-direction:column;gap:12px;padding-top:28px}
+  .intro .feat{display:flex;align-items:center;gap:11px;font-size:12.5px;color:#cfe2ef}
+  .intro .feat svg{width:17px;height:17px;color:#5eead4;flex:0 0 17px}
+  .panel{padding:48px 46px}
+  .panel h2{font-size:20px;font-weight:600;margin:0 0 6px;color:var(--ink)}
+  .panel .sub{font-size:12.5px;color:var(--muted);margin:0 0 30px}
+  .row{margin-bottom:18px}
+  .row label{display:block;font-size:12px;color:#4a5f75;margin-bottom:8px;font-weight:500}
+  .row .field{position:relative}
+  .row .field svg{position:absolute;left:13px;top:50%;transform:translateY(-50%);width:17px;height:17px;color:#9ab0c4}
+  .row input{width:100%;padding:12px 14px 12px 40px;border:1px solid #dbe4ee;border-radius:9px;
+    font-size:14px;outline:none;transition:.15s;background:#fbfdff}
+  .row input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(26,127,142,.12);background:#fff}
+  button{width:100%;padding:12px;border:0;border-radius:9px;background:linear-gradient(135deg,#1a7f8e,#1d4e79);
+    color:#fff;font-size:14px;font-weight:500;cursor:pointer;margin-top:8px;transition:.15s;
+    box-shadow:0 6px 16px rgba(26,127,142,.28)}
+  button:hover{filter:brightness(1.08);transform:translateY(-1px)}
+  .err{font-size:12px;color:#d64550;min-height:18px;margin-top:10px}
+  .hint{font-size:11px;color:#93a7ba;margin-top:20px;line-height:1.8;border-top:1px dashed #e1e9f1;padding-top:16px}
+  .hint code{background:#eef3f8;color:#1d4e79;padding:1px 6px;border-radius:4px;font-size:11px}
+  @media(max-width:760px){.wrap{grid-template-columns:1fr;max-width:420px}.intro{display:none}}
 </style>
 </head>
 <body>
-<div class="login-wrap">
-  <div class="login-card">
-    <h1>AI 应用场景机会评估系统</h1>
-    <p class="sub">需求挖掘 · 机会评估 · 立项决策</p>
+<div class="wrap">
+  <div class="intro">
+    <div class="logo">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="2.2"/><ellipse cx="12" cy="12" rx="9.5" ry="4.2" transform="rotate(-28 12 12)"/>
+        <ellipse cx="12" cy="12" rx="9.5" ry="4.2" transform="rotate(38 12 12)"/>
+      </svg>
+    </div>
+    <h1>AI 应用场景<br>智能挖掘与机会评估系统</h1>
+    <div class="en">Discovery · Evaluation · Decision</div>
+    <p>面向科研的需求驱动分析平台，覆盖多源采集、机会判别、主题聚类与价值评估，交付可溯源、可交互的决策支持。</p>
+    <div class="feats">
+      <div class="feat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 15l4-5 3 3 5-7"/></svg>全流程数据洞察与可视化</div>
+      <div class="feat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>高价值机会选取与优先级排序</div>
+      <div class="feat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>立项策划案生成与导出</div>
+    </div>
+  </div>
+  <div class="panel">
+    <h2>登录系统</h2>
+    <p class="sub">请使用分配的账号登录以继续</p>
     <form id="loginForm">
-      <div class="row"><label>用户名</label><input id="u" autocomplete="username" value=""></div>
-      <div class="row"><label>口令</label><input id="p" type="password" autocomplete="current-password"></div>
-      <button type="submit">登录</button>
-      <div class="login-err" id="err"></div>
+      <div class="row"><label>用户名</label><div class="field">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>
+        <input id="u" autocomplete="username" placeholder="请输入用户名"></div></div>
+      <div class="row"><label>口令</label><div class="field">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
+        <input id="p" type="password" autocomplete="current-password" placeholder="请输入口令"></div></div>
+      <button type="submit">登 录</button>
+      <div class="err" id="err"></div>
     </form>
-    <div class="login-hint">
+    <div class="hint">
       演示账号：需求发起者 <code>analyst / analyst@123</code>；决策者 <code>decision / decision@123</code>。<br>
       角色由服务端会话判定，客户端无法伪造。部署时请修改口令。
     </div>
