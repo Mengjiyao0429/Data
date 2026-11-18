@@ -77,9 +77,23 @@
   /* ---------------- 批次列表 ---------------- */
   async function loadBatches() {
     const tb = el('tblBatches');
-    if (!tb) return;
+    const sel = el('bSelBatch');
     try {
       const d = await api('/api/batches');
+      // 填充批次分析页的下拉选择器
+      if (sel) {
+        const done = d.items.filter((b) => b.status === 'done');
+        sel.innerHTML = '<option value="">— 请选择批次 —</option>' + d.items.map((b) =>
+          '<option value="' + esc(b.bid) + '">' + esc(b.bid) + ' · ' + esc((b.query || '').slice(0, 26)) +
+          '（' + (b.status === 'done' ? '已完成' : b.status === 'running' ? '采集中' : esc(b.status || '')) + '）</option>').join('');
+        if (S.bid) sel.value = S.bid;
+        const hint = el('bSelHint');
+        if (hint) hint.textContent = '共 ' + d.items.length + ' 个批次，' + done.length + ' 个已完成' + (d.items.some((b) => b.status === 'running') ? '（采集中会自动刷新）' : '');
+      }
+      if (!tb) {
+        if (d.items.some((b) => b.status === 'running')) schedulePoll(loadBatches, 3000);
+        return;
+      }
       if (!d.items.length) {
         tb.innerHTML = '<tr><td colspan="9" class="empty">还没有批次，先在上方发起一次需求</td></tr>';
         return;
@@ -160,6 +174,8 @@
   async function openBatch(bid) {
     S.bid = bid;
     S.detailCid = null;
+    const sel = el('bSelBatch');
+    if (sel && sel.value !== bid) sel.value = bid;
     el('bDetailCard').classList.add('hidden');
     el('page-batch').classList.remove('hidden');
     el('page-new').classList.add('hidden');
@@ -313,6 +329,11 @@
     if (el('bQ')) el('bQ').addEventListener('keydown', (e) => { if (e.key === 'Enter') loadRecords(S.bid); });
     if (el('btnBReport')) el('btnBReport').addEventListener('click',
       () => { if (S.bid) window.open('/api/batches/' + S.bid + '/report', '_blank'); });
+    if (el('bSelBatch')) el('bSelBatch').addEventListener('change', (e) => {
+      const bid = e.target.value;
+      if (bid) openBatch(bid);
+    });
+    if (el('btnBRefreshSel')) el('btnBRefreshSel').addEventListener('click', loadBatches);
     if (el('bmClose')) el('bmClose').addEventListener('click', () => el('bModal').classList.remove('show'));
     if (el('bModal')) el('bModal').addEventListener('click', (e) => { if (e.target.id === 'bModal') el('bModal').classList.remove('show'); });
 
@@ -322,9 +343,15 @@
       if (name === 'batch') {
         const hash = (location.hash || '').replace('#', '');
         const parts = hash.split('/');
-        const bid = parts[0] === 'batch' && parts[1] ? decodeURIComponent(parts[1]) : S.bid;
-        if (bid) openBatch(bid);
-        else el('bNotice').textContent = '还没有选择批次：请先在「需求发起」发起一次需求。';
+        const hashBid = parts[0] === 'batch' && parts[1] ? decodeURIComponent(parts[1]) : null;
+        if (hashBid) { openBatch(hashBid); return; }
+        if (S.bid) { openBatch(S.bid); return; }
+        // 无指定批次时，从列表自动选一个已完成的批次，避免空页面
+        api('/api/batches').then((d) => {
+          const first = d.items.find((b) => b.status === 'done') || d.items[0];
+          if (first) openBatch(first.bid);
+          else el('bNotice').textContent = '还没有批次：请到「需求发起」页填写关键词并发起一次需求。';
+        }).catch((e) => { el('bNotice').textContent = '批次列表读取失败：' + e.message; });
       }
     });
 

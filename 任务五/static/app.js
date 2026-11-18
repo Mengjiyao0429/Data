@@ -104,28 +104,6 @@
     const cs = state.clusters;
     const m = state.meta;
 
-    const funnel = echarts.init(el('chartFunnel'));
-    const t = m.total_records || 1;
-    const rOpp = m.total_opportunities / t * 100;
-    const rClu = m.total_opportunities ? m.clusters / m.total_opportunities * 100 : 0;
-    funnel.setOption({
-      tooltip: { trigger: 'item', formatter: (p) => `${p.seriesName}<br/>${p.value.toFixed(1)}%` },
-      legend: { bottom: 0, itemWidth: 12, itemHeight: 8, textStyle: { fontSize: 10, color: '#5b6b7c' } },
-      series: [
-        { name: '机会占比', type: 'pie', radius: ['58%', '78%'], center: ['50%', '44%'], silent: true,
-          label: { show: false }, labelLine: { show: false },
-          data: [{ value: rOpp, itemStyle: { color: '#5C9E6E' } },
-                 { value: 100 - rOpp, itemStyle: { color: '#eef2f7' } }] },
-        { name: '簇覆盖率', type: 'pie', radius: ['34%', '52%'], center: ['50%', '44%'],
-          label: { show: true, position: 'center', formatter: () => `{a|${rOpp.toFixed(1)}%}\n{b|机会占比}`,
-            rich: { a: { fontSize: 26, fontWeight: 700, color: '#2E5C8A', lineHeight: 32 },
-                    b: { fontSize: 11, color: '#5b6b7c' } } },
-          data: [{ value: rClu, itemStyle: { color: '#4F81BD' } },
-                 { value: 100 - rClu, itemStyle: { color: '#eef2f7' } }] },
-      ],
-    });
-    state.charts.funnel = funnel;
-
     const rank = echarts.init(el('chartRank'));
     rank.setOption({
       grid: { left: 56, right: 26, top: 24, bottom: 44 },
