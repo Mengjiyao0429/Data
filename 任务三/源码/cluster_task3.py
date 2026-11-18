@@ -17,7 +17,7 @@ import jieba
 from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
 from sklearn.decomposition import TruncatedSVD
 from sklearn.cluster import KMeans, AgglomerativeClustering
-from sklearn.metrics import silhouette_score, davies_bouldin_score, calinski_harabasz_score, adjusted_rand_score
+from sklearn.metrics import silhouette_score, silhouette_samples, davies_bouldin_score, calinski_harabasz_score, adjusted_rand_score
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 TASK3 = os.path.dirname(HERE)
@@ -298,7 +298,8 @@ def main():
                     cn_terms.append(w)
             elif not any(ch.isdigit() for ch in w) and w in TECH_EN and w not in en_terms:
                 en_terms.append(w)
-        ids = sorted(metas[i]["记录编号"] for i in members)
+        # 批号限定：跨 B01–B05 各批次编号独立，仅用 Sxxxxx 会跨批次歧义（如两个 S00005）
+        ids = sorted(f"{metas[i]['采集批次号']}-{metas[i]['记录编号']}" for i in members)
         curated = CURATED.get(",".join(ids))
         if curated:
             name, cat, ind = curated["name"], curated["func"], curated["industry"]
@@ -321,6 +322,21 @@ def main():
             samples.append(f"{metas[i]['采集批次号']}-{metas[i]['记录编号']}（{src_map.get((metas[i]['采集批次号'], metas[i]['记录编号']), '未知')}）{(t or '')[:60]}")
         rep.append(dict(cid=cid, name=name, n=len(members), cat=cat, ind=ind,
                         batch=batch, src=src_txt, cn=cn_terms, en=en_terms, samples=samples))
+
+    # 逐簇质量指标：NPMI 主题一致性 / 轮廓系数 / 簇内平均余弦相似度 / 行业标签一致率
+    sil_samples = silhouette_samples(X_lsa, labels)
+    per_cluster = []
+    for ci, members in enumerate(clusters):
+        cl_npmi = npmi_coherence(X_bin, [top_ids[ci]], n)
+        cl_sil = float(np.mean([sil_samples[i] for i in members]))
+        Xc = X[members]
+        sim = (Xc @ Xc.T).toarray()
+        k = len(members)
+        cl_cos = float((sim.sum() - k) / (k * (k - 1))) if k > 1 else 0.0
+        ind_c = rep[ci]["ind"]
+        lab_ind = sum(1 for i in members if metas[i]["所属行业"] == ind_c) / k
+        per_cluster.append((f"C{ci + 1}", rep[ci]["name"], k,
+                            cl_npmi, cl_sil, cl_cos, lab_ind))
 
     with open(OUT_CSV, "w", encoding="utf-8-sig", newline="") as f:
         w = csv.DictWriter(f, fieldnames=HEADER)
@@ -347,7 +363,13 @@ def main():
         f.write("| 簇 | 主题簇名称 | 功能类别 | 所属行业 | 记录数 | 主导批次 | 来源覆盖 |\n|---|---|---|---|---|---|---|\n")
         for r in out_rows:
             f.write(f"| {r['主题簇编号']} | {r['主题簇名称']} | {r['功能类别']} | {r['所属行业']} | {r['簇内机会记录数']} | {r['采集批次号']} | {r['来源覆盖']} |\n")
-        f.write("\n## 三、多源共同指向的热点主题\n\n")
+        f.write("\n## 三、逐簇质量指标\n\n")
+        f.write("| 簇 | 主题 | 记录数 | NPMI | 轮廓系数 | 簇内余弦相似度 | 行业标签一致率 |\n|---|---|---|---|---|---|---|\n")
+        for cid, name, cnt, cn_, sil_, cs_, li in per_cluster:
+            f.write(f"| {cid} | {name} | {cnt} | {cn_:.3f} | {sil_:.3f} | {cs_:.3f} | {li:.2%} |\n")
+        f.write("\n> NPMI 越高主题越连贯；簇内余弦相似度越高簇越紧凑；轮廓系数在短文本高维稀疏空间下结构性偏低，仅作参考；行业标签一致率用于检验与任务二既有标签体系的自洽性。\n")
+
+        f.write("\n## 四、多源共同指向的热点主题\n\n")
         f.write("来源覆盖含 2 个及以上网站的簇，视为“多源共同指向”的热点：\n\n")
         f.write("| 簇 | 主题 | 记录数 | 来源数 | 来源覆盖 |\n|---|---|---|---|---|\n")
         hot = 0
@@ -358,7 +380,7 @@ def main():
                 f.write(f"| {r['主题簇编号']} | {r['主题簇名称']} | {r['簇内机会记录数']} | {len(srcs)} | {r['来源覆盖']} |\n")
         f.write(f"\n共 {hot}/{len(out_rows)} 个主题簇被多源共同指向。\n")
 
-        f.write("\n## 四、各簇代表记录\n")
+        f.write("\n## 五、各簇代表记录\n")
         for r in rep:
             f.write(f"\n### {r['cid']} {r['name']}（{r['n']} 条）\n")
             f.write(f"- 中文关键词：{'、'.join(r['cn'][:6])}\n")
