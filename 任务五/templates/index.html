@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI 应用场景机会评估系统</title>
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+<script src="{{ url_for('static', filename='echarts.min.js') }}"></script>
+</head>
+<body>
+
+<aside class="side">
+  <div class="brand">
+    <h1>AI 机会评估系统</h1>
+    <p>需求挖掘 · 机会评估 · 立项决策</p>
+  </div>
+  <nav class="nav">
+    <a data-page="overview" class="active"><span class="dot"></span>概览看板</a>
+    <a data-page="select"><span class="dot"></span>机会选取</a>
+    <a data-page="library"><span class="dot"></span>策划案库</a>
+    <a data-page="settings"><span class="dot"></span>系统设置</a>
+  </nav>
+  <div class="side-foot">
+    数据版本：result1–result4<br>
+    任务五 · 结果呈现与决策支持
+  </div>
+</aside>
+
+<main>
+  <header class="topbar">
+    <div class="crumb" id="crumb">概览看板</div>
+    <div class="spacer"></div>
+    <span class="pill" id="modePill">模式加载中</span>
+    <span class="pill ok" id="statusPill">服务正常</span>
+    <select id="roleSel" title="切换角色">
+      <option value="requester">需求发起者</option>
+      <option value="decision">决策者</option>
+    </select>
+  </header>
+
+  <div class="content">
+
+    <!-- ============ 概览 ============ -->
+    <section class="page" id="page-overview">
+      <div class="kpis">
+        <div class="kpi"><div class="lab">采集清洗去重</div><div class="val" id="kpiRecords">—</div><div class="note">任务一 result1.csv</div></div>
+        <div class="kpi"><div class="lab">AI 应用机会</div><div class="val" id="kpiOpps">—</div><div class="note" id="kpiOppsNote">任务二识别</div></div>
+        <div class="kpi"><div class="lab">机会主题簇</div><div class="val" id="kpiClusters">—</div><div class="note">任务三聚类</div></div>
+        <div class="kpi"><div class="lab">最高价值主题簇</div><div class="val" id="kpiTop">—</div><div class="note" id="kpiTopNote">任务四评分</div></div>
+      </div>
+
+      <div class="grid2">
+        <div class="card">
+          <div class="card-head"><h2>全流程漏斗</h2><span class="hint">采集 → 机会 → 主题簇</span></div>
+          <div class="chart" id="chartFunnel"></div>
+        </div>
+        <div class="card">
+          <div class="card-head"><h2>主题簇价值排序</h2><span class="hint">窗口越大、来源越多，可行性越高</span></div>
+          <div class="chart" id="chartRank"></div>
+        </div>
+      </div>
+
+      <div class="grid2">
+        <div class="card">
+          <div class="card-head"><h2>价值分三维度贡献</h2><span class="hint">多源指向 / 记录规模 / 商业信号</span></div>
+          <div class="chart" id="chartContrib"></div>
+        </div>
+        <div class="card">
+          <div class="card-head"><h2>主题簇 × 来源覆盖</h2><span class="hint">多源共同指向 = 需求更可信</span></div>
+          <div class="chart" id="chartHeat"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ 机会选取 ============ -->
+    <section class="page hidden" id="page-select">
+      <div class="toolbar">
+        <input type="search" id="qInput" placeholder="搜索主题簇编号 / 名称 / 功能类别 / 行业">
+        <select id="fIndustry"><option value="">全部行业</option></select>
+        <select id="fFunc"><option value="">全部功能</option></select>
+        <select id="fSrc">
+          <option value="0">来源数不限</option>
+          <option value="2">≥ 2 个来源</option>
+          <option value="3">≥ 3 个来源</option>
+          <option value="4">≥ 4 个来源</option>
+        </select>
+        <button class="btn ghost" id="btnClearSel">清空勾选</button>
+        <span class="count" id="tblCount">—</span>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th style="width:34px"></th><th style="width:56px">簇号</th><th>主题簇名称</th>
+              <th style="width:110px">功能类别</th><th style="width:96px">行业</th>
+              <th style="width:66px">记录数</th><th style="width:66px">来源数</th>
+              <th style="width:132px">价值分</th><th style="width:60px">优先级</th>
+            </tr>
+          </thead>
+          <tbody id="tblBodySelect"></tbody>
+        </table>
+      </div>
+
+      <div class="toolbar" style="margin-top:14px">
+        <span class="count" id="selCount" style="margin-left:0">已勾选 0 个方向</span>
+        <div class="spacer"></div>
+        <button class="btn primary" id="btnGenBatch" disabled>批量生成立项策划案</button>
+      </div>
+    </section>
+
+    <!-- ============ 策划案库 ============ -->
+    <section class="page hidden" id="page-library">
+      <div class="toolbar">
+        <button class="btn ghost" id="btnRefreshLib">刷新列表</button>
+        <span class="count" id="libCount">—</span>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th style="width:60px">编号</th><th style="width:60px">簇号</th><th>主题簇名称</th>
+              <th style="width:110px">生成方式</th><th style="width:170px">模型</th>
+              <th style="width:66px">字数</th><th style="width:70px">Token</th>
+              <th style="width:150px">生成时间</th><th style="width:196px">操作</th>
+            </tr>
+          </thead>
+          <tbody id="tblBodyLib"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ============ 系统设置 ============ -->
+    <section class="page hidden" id="page-settings">
+      <div class="notice" id="roleNotice">当前角色为「需求发起者」：可浏览、可以选取机会、可生成策划案；系统配置仅决策者可修改。</div>
+
+      <div class="form">
+        <div class="row">
+          <label>模型服务模式</label>
+          <select id="sProvider">
+            <option value="template">离线模板（默认，零 API 成本，无需联网）</option>
+            <option value="openai">OpenAI 兼容接口（硅基流动 / 智谱 / DeepSeek / 通义 / Moonshot）</option>
+            <option value="ollama">本地 Ollama（http://localhost:11434）</option>
+          </select>
+        </div>
+        <div class="row">
+          <label>接口地址 base_url</label>
+          <input id="sBase" placeholder="https://api.siliconflow.cn/v1">
+        </div>
+        <div class="grid">
+          <div class="row">
+            <label>模型名称</label>
+            <input id="sModel" placeholder="Qwen/Qwen2.5-7B-Instruct">
+          </div>
+          <div class="row">
+            <label>API Key（仅存本机 SQLite）</label>
+            <input id="sKey" placeholder="留空则保持原值">
+          </div>
+        </div>
+        <div class="grid3">
+          <div class="row"><label>温度 temperature</label><input id="sTemp" placeholder="0.4"></div>
+          <div class="row"><label>最大输出 max_tokens</label><input id="sMaxTok" placeholder="2000"></div>
+          <div class="row"><label>超时 timeout（秒）</label><input id="sTimeout" placeholder="60"></div>
+        </div>
+        <div class="row">
+          <div id="testResult" style="font-size:12px;color:#6b7c90">未测试</div>
+        </div>
+        <div class="actions">
+          <button class="btn ghost" id="btnTest">测试连通性</button>
+          <button class="btn primary" id="btnSave">保存配置</button>
+        </div>
+      </div>
+
+      <div class="notice blue" style="margin-top:16px">
+        成本与部署：存储使用单文件 SQLite（零运维）；模型服务可先用免费额度或本地 Ollama；<br>
+        默认离线模板模式不产生任何 API 费用。部署仅需 <code>pip install -r requirements.txt</code> 与 <code>python app.py</code>。
+      </div>
+
+      <div class="card" style="margin-top:16px">
+        <div class="card-head"><h2>角色与数据可见范围</h2></div>
+        <table class="mini-table">
+          <thead><tr><th style="width:120px">角色</th><th>可用操作</th><th>数据可见范围</th></tr></thead>
+          <tbody>
+            <tr><td>需求发起者</td><td>浏览看板、筛选、选取机会、生成并下载策划案</td><td>主题簇与证据记录（脱敏后）</td></tr>
+            <tr><td>决策者</td><td>以上全部 + 修改模型配置、查看审计日志</td><td>全部数据与系统配置</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+  </div>
+</main>
+
+<!-- 详情抽屉 -->
+<div id="drawer">
+  <div class="drawer-head">
+    <div>
+      <h3 id="dTitle">—</h3>
+      <div class="sub" id="dSub">—</div>
+    </div>
+    <button class="x" id="dClose">×</button>
+  </div>
+  <div class="drawer-body" id="dBody"></div>
+  <div class="drawer-foot">
+    <button class="btn ghost" id="dSelect">选取该方向</button>
+    <button class="btn primary" id="dGen">生成立项策划案</button>
+  </div>
+</div>
+
+<!-- 策划案预览 -->
+<div id="modal">
+  <div class="modal-box">
+    <div class="modal-head">
+      <h3 id="mTitle">立项策划案</h3>
+      <div class="tools">
+        <button class="btn mini ghost" id="mDownloadMd">下载 Markdown</button>
+        <button class="btn mini ghost" id="mDownloadDocx">下载 Word</button>
+        <button class="btn mini ghost" id="mClose">关闭</button>
+      </div>
+    </div>
+    <div class="modal-body" id="mBody"></div>
+  </div>
+</div>
+
+<div id="toast"></div>
+<script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>
