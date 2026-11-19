@@ -6,7 +6,7 @@
   /* 主色：科研蓝 + 青 */
   --brand-900:#123654; --brand-800:#1c4f78; --brand-700:#1f5f90;
   --brand-600:#2563a6; --brand-500:#3b82c4; --accent:#138a8a; --accent-2:#0ea5a4;
-  --ink:#16283c; --ink-2:#33465c; --muted:#3f556b; --faint:#5c7186;
+  --ink:#16283c; --ink-2:#3d5266; --muted:#6b8299; --faint:#93a7ba;
   --bg:#eef3f8; --bg-2:#f7fafc; --panel:#ffffff;
   --line:#e1e9f1; --line-2:#eef3f8;
   --ok:#0f9d76; --warn:#e08b2c; --err:#d64550; --info:#2563a6;
@@ -117,47 +117,6 @@ section.page{max-width:1500px;margin:0 auto}
 .card-head h2{margin:0;font-size:13px;font-weight:600;color:var(--brand-700);white-space:nowrap}
 .card-head .hint{font-size:10.5px;color:var(--muted);margin-left:auto;text-align:right;line-height:1.4}
 .chart{width:100%;height:220px;min-width:0}
-
-/* ---------- 论文级图表 ---------- */
-.section-divider{display:flex;align-items:center;gap:12px;margin:16px 0 4px}
-.section-divider::before,.section-divider::after{content:"";flex:1;height:1px;background:var(--line)}
-.section-divider span{font-size:12.5px;font-weight:600;color:var(--brand-700);letter-spacing:.3px;white-space:nowrap}
-.paper-figure{cursor:zoom-in}
-.paper-figure .card-head h2{white-space:normal}
-.paper-figure .fig-box{background:#fff;border:1px solid var(--line-2);border-radius:7px;
-  padding:6px;display:flex;align-items:center;justify-content:center;overflow:hidden;min-height:200px}
-.paper-figure .fig-box img{display:block;width:100%;height:auto;max-height:420px;object-fit:contain;
-  transition:transform .22s ease}
-.paper-figure:hover .fig-box img{transform:scale(1.06)}
-.paper-figure:hover .fig-box{border-color:var(--accent);box-shadow:0 4px 16px rgba(16,40,64,.09)}
-/* 单独整行的大图（价值哑铃图）：显示更高、更清楚 */
-.paper-figure .fig-box.fig-wide img{max-height:640px}
-.paper-figure .card-head h2{white-space:normal}
-.zoom-badge{margin-left:6px;font-size:10px;color:var(--accent);background:#e6f6f5;border:1px solid #cbe8e6;
-  border-radius:10px;padding:2px 8px;white-space:nowrap;order:6;flex:0 0 auto}
-
-/* 悬停说明气泡：“这是什么” */
-#figTip{position:fixed;z-index:65;max-width:360px;padding:10px 13px;border-radius:8px;
-  background:rgba(16,40,64,.96);color:#eaf2f8;font-size:11.5px;line-height:1.65;
-  box-shadow:0 8px 26px rgba(9,25,42,.3);border:1px solid #3d5266;
-  opacity:0;visibility:hidden;transform:translateY(4px);transition:opacity .16s,transform .16s,visibility .16s;
-  pointer-events:none}
-#figTip.show{opacity:1;visibility:visible;transform:translateY(0)}
-#figTip::after{content:"";position:absolute;left:50%;bottom:-6px;margin-left:-6px;
-  border-left:6px solid transparent;border-right:6px solid transparent;border-top:6px solid rgba(16,40,64,.96)}
-
-/* ---------- 图片放大预览 ---------- */
-#figLightbox{position:fixed;inset:0;background:rgba(9,25,42,.92);backdrop-filter:blur(3px);z-index:70;
-  display:none;align-items:center;justify-content:center;padding:24px;cursor:zoom-out}
-#figLightbox.open{display:flex}
-#figLightbox figure{margin:0;max-width:96vw;max-height:94vh;display:flex;flex-direction:column;align-items:center;gap:12px}
-#figLightbox img{max-width:96vw;max-height:86vh;object-fit:contain;background:#fff;border-radius:6px;
-  box-shadow:0 20px 70px rgba(0,0,0,.5)}
-#figLightbox figcaption{color:#e6eef6;font-size:13px;text-align:center;line-height:1.6;font-weight:600}
-#figLightbox .lb-desc{color:#bcd0e2;font-size:12px;text-align:center;line-height:1.7;max-width:820px;margin:2px auto 0}
-#figLightbox .lb-close{position:absolute;top:18px;right:22px;width:40px;height:40px;border:none;border-radius:50%;
-  background:rgba(255,255,255,.16);color:#fff;font-size:24px;line-height:1;cursor:pointer;transition:.15s}
-#figLightbox .lb-close:hover{background:rgba(255,255,255,.32)}
 
 /* 帮助按钮 */
 .help-btn{margin-left:6px;width:19px;height:19px;flex:0 0 19px;border-radius:50%;

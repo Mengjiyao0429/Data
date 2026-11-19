@@ -55,21 +55,13 @@ def init():
     return False
 
 
-def _hash_password(password):
-    """优先用 scrypt；若运行环境的 hashlib 不支持 scrypt 则回退 pbkdf2。"""
-    try:
-        return generate_password_hash(password, method="scrypt")
-    except ValueError:
-        return generate_password_hash(password, method="pbkdf2:sha256")
-
-
 def create_user(username, password, role, display=""):
     if role not in ROLES:
         raise ValueError("非法角色")
     with _conn() as c:
         c.execute("INSERT OR REPLACE INTO users(username,pw_hash,role,display,active,created_at) "
                   "VALUES(?,?,?,?,1,?)",
-                  (username, _hash_password(password), role,
+                  (username, generate_password_hash(password, method="scrypt"), role,
                    display or username, datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
 
 

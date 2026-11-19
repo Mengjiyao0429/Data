@@ -112,40 +112,29 @@
       records: T('簇内机会记录数'), value: T('机会价值分'), score: T('得分'),
       multi: T('多源指向度'), scale: T('记录规模'), biz: T('商业信号'),
       recordsTip: T('记录数'), sourcesTip: T('来源数'), priorityTip: T('优先级'),
-      valueTip: T('价值分'), countUnit: T('条'), shareTip: T('占比'),
+      valueTip: T('价值分'), countUnit: T('条'),
     };
   }
 
   function initCharts() {
-    if (!el('chartRank')) return;
     if (state.chartsReady || typeof echarts === 'undefined' || !state.clusters.length) return;
     state.chartsReady = true;
     const cs = state.clusters;
     const m = state.meta;
     const X = chartText();
-    const TIP = {
-      bg: '#16283c', border: '#3d5266', text: '#eaf2f8',
-      extraCss: 'box-shadow:0 6px 20px rgba(16,40,64,.22);border-radius:7px;',
-    };
 
-    // 图1：主题簇价值排序（气泡散点：记录数 × 价值分，气泡大小=来源数，颜色=优先级）
     const rank = echarts.init(el('chartRank'));
     rank.setOption({
-      grid: { left: 52, right: 22, top: 22, bottom: 44 },
+      grid: { left: 52, right: 22, top: 18, bottom: 42 },
       tooltip: {
-        backgroundColor: TIP.bg, borderColor: TIP.border, textStyle: { color: TIP.text, fontSize: 12 },
-        extraCssText: TIP.extraCss,
         formatter: (p) => {
           const d = p.data;
-          return '<b>' + d[5] + ' ' + d[6] + '</b><br/>' + X.recordsTip + '：' + d[0] + ' ' + X.countUnit +
-            '<br/>' + X.valueTip + '：' + d[1] + '<br/>' + X.sourcesTip + '：' + d[2] +
-            '<br/>' + X.priorityTip + '：#' + d[3];
+          return '<b>' + d[5] + ' ' + d[6] + '</b><br/>' + X.recordsTip + '：' + d[0] + '<br/>' + X.valueTip + '：' + d[1] +
+            '<br/>' + X.sourcesTip + '：' + d[2] + '<br/>' + X.priorityTip + '：' + d[3];
         },
       },
-      xAxis: { name: X.records, nameGap: 22, nameLocation: 'middle', nameTextStyle: { color: '#33465c' },
-        splitLine: { lineStyle: { color: '#eef2f7' } }, axisLabel: { color: '#33465c' } },
-      yAxis: { name: X.value, nameGap: 36, nameLocation: 'middle', nameTextStyle: { color: '#33465c' },
-        max: 105, splitLine: { lineStyle: { color: '#eef2f7' } }, axisLabel: { color: '#33465c' } },
+      xAxis: { name: X.records, nameGap: 22, nameLocation: 'middle', splitLine: { lineStyle: { color: '#eef2f7' } } },
+      yAxis: { name: X.value, nameGap: 36, nameLocation: 'middle', max: 105, splitLine: { lineStyle: { color: '#eef2f7' } } },
       series: [{
         type: 'scatter',
         data: cs.map((c) => [c.size, c.score, c.sources.length, c.priority, c.cid, c.cid, c.name]),
@@ -154,62 +143,53 @@
           color: (p) => (p.data[3] <= 3 ? '#C0504D' : p.data[3] <= 8 ? '#4F81BD' : '#8AA0B6'),
           opacity: 0.86, borderColor: '#fff', borderWidth: 1.5,
         },
-        emphasis: { scale: 1.35, itemStyle: { shadowBlur: 12, shadowColor: 'rgba(16,40,64,.35)' } },
-        label: { show: true, position: 'top', fontSize: 10, color: '#33465c',
+        label: { show: true, position: 'top', fontSize: 10, color: '#41576e',
           formatter: (p) => (p.data[3] <= 6 ? p.data[4] : '') },
       }],
     });
     state.charts.rank = rank;
 
-    // 图2：价值分三维度贡献（Top8 堆叠柱，悬停显示全部维度）
     const top8 = cs.slice(0, 8);
     const contrib = echarts.init(el('chartContrib'));
     contrib.setOption({
       color: ['#2E5C8A', '#4F81BD', '#3F9DB3'],
-      tooltip: {
-        trigger: 'axis', axisPointer: { type: 'shadow' },
-        backgroundColor: TIP.bg, borderColor: TIP.border, textStyle: { color: TIP.text, fontSize: 12 },
-        extraCssText: TIP.extraCss,
-      },
-      legend: { top: 0, itemWidth: 11, itemHeight: 7, textStyle: { fontSize: 10, color: '#33465c' } },
+      tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' } },
+      legend: { top: 0, itemWidth: 11, itemHeight: 7, textStyle: { fontSize: 10 } },
       grid: { left: 42, right: 16, top: 34, bottom: 44 },
-      xAxis: { type: 'category', data: top8.map((c) => c.cid), axisLabel: { fontSize: 10, color: '#33465c' } },
-      yAxis: { max: 300, splitLine: { lineStyle: { color: '#eef2f7' } }, name: X.score, nameTextStyle: { color: '#33465c' }, axisLabel: { color: '#33465c' } },
+      xAxis: { type: 'category', data: top8.map((c) => c.cid), axisLabel: { fontSize: 10 } },
+      yAxis: { max: 300, splitLine: { lineStyle: { color: '#eef2f7' } }, name: X.score, nameGap: 22 },
       series: [
-        { name: X.multi, type: 'bar', stack: 'd', data: top8.map((c) => c.dims.src), barWidth: 16,
-          emphasis: { focus: 'series' } },
-        { name: X.scale, type: 'bar', stack: 'd', data: top8.map((c) => c.dims.size), emphasis: { focus: 'series' } },
-        { name: X.biz, type: 'bar', stack: 'd', data: top8.map((c) => c.dims.biz), emphasis: { focus: 'series' } },
+        { name: X.multi, type: 'bar', stack: 'd', data: top8.map((c) => c.dims.src), barWidth: 16 },
+        { name: X.scale, type: 'bar', stack: 'd', data: top8.map((c) => c.dims.size) },
+        { name: X.biz, type: 'bar', stack: 'd', data: top8.map((c) => c.dims.biz) },
       ],
     });
     state.charts.contrib = contrib;
 
-    // 图3：信息来源多元构成（南丁格尔玫瑰图，悬停查看记录数与占比）——替换原覆盖热力图
     const SHORT = { '阿里云开发者社区': '阿里云', 'Stack Overflow': 'StackOverflow' };
-    const srcRows = (m.sources || []).map((s) => ({ name: SHORT[s.name] || s.name, value: s.count }));
-    const srcTotal = srcRows.reduce((a, b) => a + b.value, 0) || 1;
-    const source = echarts.init(el('chartSource'));
-    source.setOption({
-      color: ['#2E5C8A', '#4F81BD', '#3F9DB3', '#7BA24A', '#E8A33D', '#8E6BBF', '#C0504D', '#5BA8A0'],
-      tooltip: {
-        trigger: 'item',
-        backgroundColor: TIP.bg, borderColor: TIP.border, textStyle: { color: TIP.text, fontSize: 12 },
-        extraCssText: TIP.extraCss,
-        formatter: (p) => '<b>' + p.name + '</b><br/>' + X.recordsTip + '：' + p.value + ' ' + X.countUnit +
-          '<br/>' + X.shareTip + '：' + (p.value / srcTotal * 100).toFixed(1) + '%',
-      },
-      legend: { type: 'scroll', orient: 'vertical', right: 4, top: 'center', itemWidth: 10, itemHeight: 8,
-        textStyle: { fontSize: 10, color: '#33465c' } },
-      series: [{
-        type: 'pie', radius: [22, 88], center: ['38%', '54%'], roseType: 'area',
-        itemStyle: { borderColor: '#fff', borderWidth: 2, borderRadius: 4 },
-        label: { show: true, fontSize: 10, color: '#33465c', formatter: '{d}%' },
-        labelLine: { length: 6, length2: 6 },
-        emphasis: { scale: true, scaleSize: 6, itemStyle: { shadowBlur: 14, shadowColor: 'rgba(16,40,64,.35)' } },
-        data: srcRows,
-      }],
+    const srcNames = m.sources.slice(0, 8).map((s) => {
+      const n = SHORT[s.name] || s.name;
+      return n.length > 7 ? n.slice(0, 7) + '…' : n;
     });
-    state.charts.source = source;
+    const heatData = [];
+    cs.forEach((c, yi) => {
+      srcNames.forEach((sn, xi) => {
+        const f = c.sources.find((s) => s.name === sn);
+        heatData.push([xi, yi, f ? f.count : 0]);
+      });
+    });
+    const heat = echarts.init(el('chartHeat'));
+    heat.setOption({
+      tooltip: { formatter: (p) => srcNames[p.data[0]] + ' × ' + cs[p.data[1]].cid + '：' + p.data[2] + ' ' + X.countUnit },
+      grid: { left: 60, right: 18, top: 14, bottom: 56 },
+      xAxis: { type: 'category', data: srcNames, axisLabel: { rotate: 32, fontSize: 9 } },
+      yAxis: { type: 'category', data: cs.map((c) => c.cid), axisLabel: { fontSize: 9 }, inverse: true },
+      visualMap: { min: 0, max: Math.max(3, ...heatData.map((d) => d[2])), orient: 'horizontal',
+        left: 'center', bottom: 0, itemWidth: 11, itemHeight: 76, textStyle: { fontSize: 9 },
+        inRange: { color: ['#f3f7fc', '#9dbfdc', '#4F81BD', '#2E5C8A'] } },
+      series: [{ type: 'heatmap', data: heatData, itemStyle: { borderColor: '#fff', borderWidth: 1 } }],
+    });
+    state.charts.heat = heat;
   }
 
   function disposeCharts() {
@@ -341,7 +321,7 @@
         '<table class="mini-table"><thead><tr><th style="width:92px">' + T('编号') + '</th><th>' + T('标题') + '</th>' +
         '<th style="width:80px">' + T('来源') + '</th><th style="width:56px">' + T('热度') + '</th></tr></thead><tbody>' + ev + '</tbody></table>' +
         '<div class="sec-t">' + T('评分解释') + '</div>' +
-        '<p style="font-size:12px;color:#33465c;line-height:1.8">' +
+        '<p style="font-size:12px;color:#5b6b7d;line-height:1.8">' +
         T('多源指向度 = 100 × min(1, 来源数/14)：覆盖来源种类越多，需求越可信；') + '<br/>' +
         T('记录规模 = 100 × min(1, 簇内记录数/100)：固定基准，跨批可比；') + '<br/>' +
         T('商业信号 = 0.6×生均互动热度 + 0.4×需求置信度。') + '</p>';
@@ -428,9 +408,9 @@
         tr.innerHTML =
           '<td>' + p.id + '</td><td><b>' + p.cid + '</b></td><td>' + esc(p.cluster_name) + '</td>' +
           '<td><span class="tag">' + modeLabel + '</span></td>' +
-          '<td style="font-size:11px;color:#3f556b">' + esc(p.model) + '</td>' +
+          '<td style="font-size:11px;color:#6b7c90">' + esc(p.model) + '</td>' +
           '<td>' + fmt(p.chars) + '</td><td>' + fmt(p.tokens) + '</td>' +
-          '<td style="font-size:11px;color:#3f556b">' + p.created_at + '</td>' +
+          '<td style="font-size:11px;color:#6b7c90">' + p.created_at + '</td>' +
           '<td><button class="btn mini ghost" data-act="view" data-id="' + p.id + '">' + T('预览') + '</button> ' +
           '<button class="btn mini ghost" data-act="md" data-id="' + p.id + '">MD</button> ' +
           '<button class="btn mini ghost" data-act="docx" data-id="' + p.id + '">Word</button></td>';
@@ -486,7 +466,7 @@
 
   el('btnTest').addEventListener('click', async () => {
     el('testResult').textContent = T('测试中…');
-    el('testResult').style.color = '#3f556b';
+    el('testResult').style.color = '#6b7c90';
     try {
       const r = await api('/api/test', { method: 'POST', body: '{}' });
       el('testResult').textContent = (r.ok ? '✓ ' : '✗ ') + r.message + '（' + r.ms + ' ms）';
@@ -507,59 +487,6 @@
     if (currentPage === 'library') loadLibrary();
     if (currentPage === 'overview') { disposeCharts(); initCharts(); setTimeout(resizeCharts, 80); }
   });
-
-  /* ---------------- 论文图放大预览 + 悬停说明 ---------------- */
-  (function bindLightbox() {
-    const box = el('figLightbox');
-    if (!box) return;
-    const img = el('lbImg'), cap = el('lbCap'), desc = el('lbDesc'), close = el('lbClose');
-    const tip = el('figTip');
-
-    // 悬停：在图上方浮出“这是什么”的说明，并轻微放大
-    if (tip) {
-      let hideTimer = null;
-      document.addEventListener('mouseover', (e) => {
-        const card = e.target.closest('.paper-figure');
-        if (!card || card.contains(e.relatedTarget)) return;
-        const text = card.getAttribute('data-desc') || card.getAttribute('data-cap') || '';
-        if (!text) return;
-        tip.textContent = text;
-        tip.classList.add('show');
-        const r = card.getBoundingClientRect();
-        // 默认定位在卡片顶部，超出视口上边则放到底部
-        let top = r.top - tip.offsetHeight - 10;
-        if (top < 8) top = Math.min(r.bottom + 10, window.innerHeight - tip.offsetHeight - 8);
-        let left = r.left + r.width / 2 - tip.offsetWidth / 2;
-        left = Math.max(8, Math.min(left, window.innerWidth - tip.offsetWidth - 8));
-        tip.style.top = top + 'px';
-        tip.style.left = left + 'px';
-      });
-      document.addEventListener('mouseout', (e) => {
-        const card = e.target.closest('.paper-figure');
-        if (!card || card.contains(e.relatedTarget)) return;
-        tip.classList.remove('show');
-      });
-    }
-
-    document.addEventListener('click', (e) => {
-      const card = e.target.closest('.paper-figure');
-      if (!card) return;
-      // 帮助按钮不触发放大
-      if (e.target.closest('.help-btn')) return;
-      const zoom = card.getAttribute('data-zoom');
-      if (!zoom) return;
-      img.src = '/static/' + zoom;
-      img.alt = card.getAttribute('data-cap') || '';
-      cap.textContent = card.getAttribute('data-cap') || '';
-      if (desc) desc.textContent = card.getAttribute('data-desc') || '';
-      box.classList.add('open');
-      if (tip) tip.classList.remove('show');
-    });
-    const hide = () => { box.classList.remove('open'); img.src = ''; };
-    close.addEventListener('click', hide);
-    box.addEventListener('click', (e) => { if (e.target === box || e.target.tagName === 'FIGURE') hide(); });
-    document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && box.classList.contains('open')) hide(); });
-  })();
 
   /* ---------------- 启动 ---------------- */
   async function boot() {

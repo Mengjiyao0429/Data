@@ -180,7 +180,7 @@
     <section class="page" id="page-overview">
       <div class="page-head">
         <div class="ph-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg></div>
-        <div><h2 data-i18n>概览看板</h2><p data-i18n>任务一至任务四核心结果一览：数据规模、机会分布、主题簇价值与信息多元性。悬停任意图可查看数值，点击图表可查看说明。</p></div>
+        <div><h2 data-i18n>概览看板</h2><p data-i18n>任务一至任务四核心结果一览：数据规模、机会分布、主题簇价值与三维度贡献。</p></div>
       </div>
       <div class="kpis">
         <div class="kpi"><div class="lab" data-i18n>采集清洗去重</div><div class="val" id="kpiRecords">—</div><div class="note" data-i18n>任务一 result1.csv</div></div>
@@ -189,18 +189,18 @@
         <div class="kpi"><div class="lab" data-i18n>最高价值主题簇</div><div class="val" id="kpiTop">—</div><div class="note" id="kpiTopNote" data-i18n>任务四评分</div></div>
       </div>
 
-      <div class="grid3" style="margin-top:12px">
+      <div class="grid3">
         <div class="card">
-          <div class="card-head"><h2 data-i18n>主题簇价值排序</h2><span class="hint" data-i18n>悬停查看簇名、价值分与记录数</span><button class="help-btn" data-help="over-rank" data-i18n-title="使用说明" title="使用说明">?</button></div>
-          <div class="chart" id="chartRank" style="height:250px"></div>
+          <div class="card-head"><h2 data-i18n>主题簇价值排序</h2><span class="hint" data-i18n>窗口越大、来源越多，可行性越高</span><button class="help-btn" data-help="over-rank" data-i18n-title="使用说明" title="使用说明">?</button></div>
+          <div class="chart" id="chartRank"></div>
         </div>
         <div class="card">
-          <div class="card-head"><h2 data-i18n>价值分三维度贡献</h2><span class="hint" data-i18n>悬停查看各维度得分</span><button class="help-btn" data-help="over-contrib" data-i18n-title="使用说明" title="使用说明">?</button></div>
-          <div class="chart" id="chartContrib" style="height:250px"></div>
+          <div class="card-head"><h2 data-i18n>价值分三维度贡献</h2><span class="hint" data-i18n>多源指向 / 记录规模 / 商业信号</span><button class="help-btn" data-help="over-contrib" data-i18n-title="使用说明" title="使用说明">?</button></div>
+          <div class="chart" id="chartContrib"></div>
         </div>
         <div class="card">
-          <div class="card-head"><h2 data-i18n>信息来源多元构成</h2><span class="hint" data-i18n>悬停查看各来源记录数与占比</span><button class="help-btn" data-help="over-source" data-i18n-title="使用说明" title="使用说明">?</button></div>
-          <div class="chart" id="chartSource" style="height:250px"></div>
+          <div class="card-head"><h2 data-i18n>主题簇 × 来源覆盖</h2><span class="hint" data-i18n>多源共同指向 = 需求更可信</span><button class="help-btn" data-help="over-heat" data-i18n-title="使用说明" title="使用说明">?</button></div>
+          <div class="chart" id="chartHeat"></div>
         </div>
       </div>
     </section>
@@ -281,63 +281,47 @@
     <section class="page hidden" id="page-insight">
       <div class="page-head">
         <div class="ph-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 15l4-5 3 3 5-7"/></svg></div>
-        <div><h2 data-i18n>数据分析</h2><p data-i18n>任务一至任务四结果的统计视图与论文级图表：彩色桑基流向、类别分布、语义空间、权重敏感性与价值排名，点击任意图可放大。</p></div>
+        <div><h2 data-i18n>数据分析</h2><p data-i18n>基于任务一至任务四真实结果的统计视图，彩色桑基流向与环形占比，所有数据可溯源。</p></div>
       </div>
 
-      <!-- 动态桑基图：用户认可的第一张图，保留 -->
       <div class="card card-hero">
         <div class="card-head"><h2 data-i18n>全流程流向 · 彩色桑基图</h2><span class="hint" data-i18n>采集 → 机会 / 非机会 → 各主题簇，流向宽度即规模，颜色区分主题</span><button class="help-btn" data-help="ins-sankey" data-i18n-title="使用说明" title="使用说明">?</button></div>
         <div class="chart" id="insFunnel" style="height:300px"></div>
       </div>
 
-      <div class="grid2" style="margin-top:12px">
+      <div class="grid3" style="margin-top:14px">
         <div class="card">
           <div class="card-head"><h2 data-i18n>转化进度 · 环形占比</h2><span class="hint" data-i18n>机会率 / 簇覆盖率</span><button class="help-btn" data-help="ins-rate" data-i18n-title="使用说明" title="使用说明">?</button></div>
-          <div class="chart" id="insFunnelRate" style="height:250px"></div>
+          <div class="chart" id="insFunnelRate" style="height:230px"></div>
+        </div>
+        <div class="card">
+          <div class="card-head"><h2 data-i18n>来源构成占比</h2><span class="hint" data-i18n>各公开渠道记录数</span><button class="help-btn" data-help="ins-source" data-i18n-title="使用说明" title="使用说明">?</button></div>
+          <div class="chart" id="insSourcePie" style="height:230px"></div>
+        </div>
+        <div class="card">
+          <div class="card-head"><h2 data-i18n>功能类别占比</h2><span class="hint" data-i18n>按机会记录数</span><button class="help-btn" data-help="ins-func" data-i18n-title="使用说明" title="使用说明">?</button></div>
+          <div class="chart" id="insFuncPie" style="height:230px"></div>
+        </div>
+      </div>
+
+      <div class="grid3" style="margin-top:14px">
+        <div class="card">
+          <div class="card-head"><h2 data-i18n>所属行业占比</h2><span class="hint" data-i18n>按机会记录数</span><button class="help-btn" data-help="ins-ind" data-i18n-title="使用说明" title="使用说明">?</button></div>
+          <div class="chart" id="insIndPie" style="height:230px"></div>
+        </div>
+        <div class="card">
+          <div class="card-head"><h2 data-i18n>置信度分布</h2><span class="hint" data-i18n>经金标准 isotonic 校准</span><button class="help-btn" data-help="ins-conf" data-i18n-title="使用说明" title="使用说明">?</button></div>
+          <div class="chart" id="insConf" style="height:230px"></div>
         </div>
         <div class="card">
           <div class="card-head"><h2 data-i18n>各批次机会数</h2><span class="hint" data-i18n>B01–B08 批次独立</span><button class="help-btn" data-help="ins-batch" data-i18n-title="使用说明" title="使用说明">?</button></div>
-          <div class="chart" id="insBatchBar" style="height:250px"></div>
+          <div class="chart" id="insBatchBar" style="height:230px"></div>
         </div>
       </div>
 
-      <!-- 用户要求：价值分类排序左侧文字过于拥挤，重绘为清爽版 -->
-      <div class="card" style="margin-top:12px">
-        <div class="card-head"><h2 data-i18n>价值分类排序 · Top10 清爽版</h2><span class="hint" data-i18n>左侧仅簇号、名称见悬停，标签间距重新排布</span><button class="help-btn" data-help="ins-value" data-i18n-title="使用说明" title="使用说明">?</button></div>
-        <div class="chart" id="insValueRank" style="height:300px"></div>
-      </div>
-
-      <!-- 论文级图表库 -->
-      <div class="section-divider" style="margin-top:18px"><span data-i18n>论文级图表 · 结果深度分析</span></div>
-
-      <div class="section-divider" style="margin-top:18px"><span data-i18n>论文级图表 · 结果深度分析</span></div>
-
-      <div class="grid2" style="margin-top:12px">
-        <div class="paper-figure card" data-zoom="figures/lollipop.png" data-desc="棒棒糖图：每个圆点代表一类应用机会，点的位置表示该类机会的记录规模。智能体编排与推荐系统合计约占四成，是机会最集中的两类。" data-cap="机会类别分布">
-          <div class="card-head"><h2 data-i18n>机会类别分布</h2><span class="hint" data-i18n>智能体编排与推荐系统合计约四成</span><button class="help-btn" data-help="ins-func" data-i18n-title="使用说明" title="使用说明">?</button><span class="zoom-badge" data-i18n>点击放大</span></div>
-          <div class="fig-box"><img src="{{ url_for('static', filename='figures/lollipop.png') }}" alt="机会类别分布棒棒糖图" loading="lazy"></div>
-        </div>
-        <div class="paper-figure card" data-zoom="figures/func_industry.png" data-desc="分组条形图：上半部分展示16类功能类别分布，下半部分展示Top12行业分布，全部类别均可辨识，避免“其他”占比过高掩盖细节。" data-cap="功能类别与行业分布">
-          <div class="card-head"><h2 data-i18n>功能类别与行业分布</h2><span class="hint" data-i18n>16 类功能 / Top12 行业，全类别可辨</span><button class="help-btn" data-help="ins-ind" data-i18n-title="使用说明" title="使用说明">?</button><span class="zoom-badge" data-i18n>点击放大</span></div>
-          <div class="fig-box"><img src="{{ url_for('static', filename='figures/func_industry.png') }}" alt="功能类别与行业分布图" loading="lazy"></div>
-        </div>
-      </div>
-
-      <!-- 价值排名哑铃图：单独整行放大显示，便于看清楚 -->
-      <div class="paper-figure card" style="margin-top:12px" data-zoom="figures/value_dumbbell.png" data-desc="哑铃图：横轴为机会价值分，两个端点分别表示基准排序与权重扰动后的排序。连线越短说明该主题簇在权重变化下排名越稳定，头部簇基本不动。" data-cap="主题价值排名（条形 + 排名位移哑铃图）">
-        <div class="card-head"><h2 data-i18n>价值排名 · 条形哑铃图</h2><span class="hint" data-i18n>头部稳定，权重扰动下排名位移有限</span><button class="help-btn" data-help="ins-value" data-i18n-title="使用说明" title="使用说明">?</button><span class="zoom-badge" data-i18n>点击放大</span></div>
-        <div class="fig-box fig-wide"><img src="{{ url_for('static', filename='figures/value_dumbbell.png') }}" alt="价值排名条形哑铃图" loading="lazy"></div>
-      </div>
-
-      <div class="grid2" style="margin-top:12px">
-        <div class="paper-figure card" data-zoom="figures/semantic_scatter.png" data-desc="语义空间散点：文本经TF-IDF→LSA→PCA逐步降维后投影到二维，颜色区分55个主题簇。点分布连续说明主题之间存在语义过渡。" data-cap="语义空间散点（TF-IDF → LSA → PCA）">
-          <div class="card-head"><h2 data-i18n>语义空间散点</h2><span class="hint" data-i18n>按 55 个主题簇着色，颜色区分语义群</span><button class="help-btn" data-help="ins-semantic" data-i18n-title="使用说明" title="使用说明">?</button><span class="zoom-badge" data-i18n>点击放大</span></div>
-          <div class="fig-box"><img src="{{ url_for('static', filename='figures/semantic_scatter.png') }}" alt="语义空间散点图" loading="lazy"></div>
-        </div>
-        <div class="paper-figure card" data-zoom="figures/contrib3d.png" data-desc="堆叠柱状图：把每个主题簇的价值分拆成多源指向度、记录规模、商业信号三项贡献。柱子越高总分越高，颜色段越宽表示该项贡献越大。" data-cap="机会价值分的三维度加权贡献分解">
-          <div class="card-head"><h2 data-i18n>三维度加权贡献</h2><span class="hint" data-i18n>多源指向 × 记录规模 × 商业信号</span><button class="help-btn" data-help="ins-contrib" data-i18n-title="使用说明" title="使用说明">?</button><span class="zoom-badge" data-i18n>点击放大</span></div>
-          <div class="fig-box"><img src="{{ url_for('static', filename='figures/contrib3d.png') }}" alt="三维度加权贡献图" loading="lazy"></div>
-        </div>
+      <div class="card" style="margin-top:14px">
+        <div class="card-head"><h2 data-i18n>Top10 主题簇机会价值分</h2><span class="hint" data-i18n>固定基准 + 熵权法合成，优先级排序依据</span><button class="help-btn" data-help="ins-value" data-i18n-title="使用说明" title="使用说明">?</button></div>
+        <div class="chart" id="insValueBar" style="height:250px"></div>
       </div>
     </section>
 
@@ -476,17 +460,6 @@
     <div class="modal-body" id="bmBody"></div>
   </div>
 </div>
-
-<!-- 图片放大预览 -->
-<div id="figLightbox" role="dialog" aria-modal="true">
-  <button class="lb-close" id="lbClose" data-i18n-title="关闭" title="关闭">×</button>
-  <figure>
-    <img id="lbImg" src="" alt="">
-    <figcaption id="lbCap"></figcaption>
-    <p class="lb-desc" id="lbDesc"></p>
-  </figure>
-</div>
-<div id="figTip" role="tooltip"></div>
 
 <div id="toast"></div>
 <script src="{{ url_for('static', filename='app.js') }}"></script>
