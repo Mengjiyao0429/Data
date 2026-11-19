@@ -180,7 +180,7 @@
     <section class="page" id="page-overview">
       <div class="page-head">
         <div class="ph-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg></div>
-        <div><h2 data-i18n>概览看板</h2><p data-i18n>任务一至任务四核心结果一览：数据规模、机会分布、主题簇价值与信息多元性。点击任意图可放大查看细节。</p></div>
+        <div><h2 data-i18n>概览看板</h2><p data-i18n>任务一至任务四核心结果一览：数据规模、机会分布、主题簇价值与信息多元性。悬停任意图可查看数值，点击图表可查看说明。</p></div>
       </div>
       <div class="kpis">
         <div class="kpi"><div class="lab" data-i18n>采集清洗去重</div><div class="val" id="kpiRecords">—</div><div class="note" data-i18n>任务一 result1.csv</div></div>
@@ -189,19 +189,18 @@
         <div class="kpi"><div class="lab" data-i18n>最高价值主题簇</div><div class="val" id="kpiTop">—</div><div class="note" id="kpiTopNote" data-i18n>任务四评分</div></div>
       </div>
 
-      <div class="paper-figure card" data-zoom="figures/value_dumbbell.png" data-cap="主题价值排名（排序条形 + 排名位移哑铃图）">
-        <div class="card-head"><h2 data-i18n>主题簇价值排名 · 条形哑铃图</h2><span class="hint" data-i18n>B02 推荐系统以 65.9 分居首，头部集中于推荐与智能体</span><button class="help-btn" data-help="over-rank" data-i18n-title="使用说明" title="使用说明">?</button><span class="zoom-badge" data-i18n>点击放大</span></div>
-        <div class="fig-box"><img src="{{ url_for('static', filename='figures/value_dumbbell.png') }}" alt="主题价值排名条形哑铃图" loading="lazy"></div>
-      </div>
-
-      <div class="grid2" style="margin-top:12px">
-        <div class="paper-figure card" data-zoom="figures/contrib3d.png" data-cap="机会价值分的三维度加权贡献分解">
-          <div class="card-head"><h2 data-i18n>价值分三维度加权贡献</h2><span class="hint" data-i18n>多源指向 × 记录规模 × 商业信号</span><button class="help-btn" data-help="over-contrib" data-i18n-title="使用说明" title="使用说明">?</button><span class="zoom-badge" data-i18n>点击放大</span></div>
-          <div class="fig-box"><img src="{{ url_for('static', filename='figures/contrib3d.png') }}" alt="三维度加权贡献图" loading="lazy"></div>
+      <div class="grid3" style="margin-top:12px">
+        <div class="card">
+          <div class="card-head"><h2 data-i18n>主题簇价值排序</h2><span class="hint" data-i18n>悬停查看簇名、价值分与记录数</span><button class="help-btn" data-help="over-rank" data-i18n-title="使用说明" title="使用说明">?</button></div>
+          <div class="chart" id="chartRank" style="height:250px"></div>
         </div>
-        <div class="paper-figure card" data-zoom="figures/source_composition.png" data-cap="各采集批次 × 来源网站记录构成（信息多元性）">
-          <div class="card-head"><h2 data-i18n>信息来源多元构成</h2><span class="hint" data-i18n>四大来源 × 八批次，多源交叉印证</span><button class="help-btn" data-help="over-heat" data-i18n-title="使用说明" title="使用说明">?</button><span class="zoom-badge" data-i18n>点击放大</span></div>
-          <div class="fig-box"><img src="{{ url_for('static', filename='figures/source_composition.png') }}" alt="各批次来源构成图" loading="lazy"></div>
+        <div class="card">
+          <div class="card-head"><h2 data-i18n>价值分三维度贡献</h2><span class="hint" data-i18n>悬停查看各维度得分</span><button class="help-btn" data-help="over-contrib" data-i18n-title="使用说明" title="使用说明">?</button></div>
+          <div class="chart" id="chartContrib" style="height:250px"></div>
+        </div>
+        <div class="card">
+          <div class="card-head"><h2 data-i18n>信息来源多元构成</h2><span class="hint" data-i18n>悬停查看各来源记录数与占比</span><button class="help-btn" data-help="over-source" data-i18n-title="使用说明" title="使用说明">?</button></div>
+          <div class="chart" id="chartSource" style="height:250px"></div>
         </div>
       </div>
     </section>
@@ -312,55 +311,55 @@
       <div class="section-divider" style="margin-top:18px"><span data-i18n>论文级图表 · 结果深度分析</span></div>
 
       <div class="grid2" style="margin-top:12px">
-        <div class="paper-figure card" data-zoom="figures/lollipop.png" data-cap="机会类别分布（棒棒糖图）">
+        <div class="paper-figure card" data-zoom="figures/lollipop.png" data-desc="棒棒糖图：每个圆点代表一类应用机会，点的位置表示该类机会的记录规模。智能体编排与推荐系统合计约占四成，是机会最集中的两类。" data-cap="机会类别分布（棒棒糖图）">
           <div class="card-head"><h2 data-i18n>机会类别分布 · 棒棒糖图</h2><span class="hint" data-i18n>智能体编排与推荐系统合计约四成</span><button class="help-btn" data-help="ins-func" data-i18n-title="使用说明" title="使用说明">?</button><span class="zoom-badge" data-i18n>点击放大</span></div>
           <div class="fig-box"><img src="{{ url_for('static', filename='figures/lollipop.png') }}" alt="机会类别分布棒棒糖图" loading="lazy"></div>
         </div>
-        <div class="paper-figure card" data-zoom="figures/func_industry.png" data-cap="功能类别与行业分布">
+        <div class="paper-figure card" data-zoom="figures/func_industry.png" data-desc="分组条形图：上半部分展示16类功能类别分布，下半部分展示Top12行业分布，全部类别均可辨识，避免“其他”占比过高掩盖细节。" data-cap="功能类别与行业分布">
           <div class="card-head"><h2 data-i18n>功能类别与行业分布</h2><span class="hint" data-i18n>16 类功能 / Top12 行业，全类别可辨</span><button class="help-btn" data-help="ins-ind" data-i18n-title="使用说明" title="使用说明">?</button><span class="zoom-badge" data-i18n>点击放大</span></div>
           <div class="fig-box"><img src="{{ url_for('static', filename='figures/func_industry.png') }}" alt="功能类别与行业分布图" loading="lazy"></div>
         </div>
       </div>
 
       <div class="grid2" style="margin-top:12px">
-        <div class="paper-figure card" data-zoom="figures/source_composition.png" data-cap="各采集批次 × 来源网站记录构成">
+        <div class="paper-figure card" data-zoom="figures/source_composition.png" data-desc="堆叠柱状图：横轴为B01–B08八个采集批次，每段颜色代表一个来源网站。四色交叉出现说明信息来自多个公开渠道，可溯源、更可信。" data-cap="各采集批次 × 来源网站记录构成">
           <div class="card-head"><h2 data-i18n>来源构成 · 批次 × 来源</h2><span class="hint" data-i18n>四大来源 × 八批次，信息多元可溯源</span><button class="help-btn" data-help="ins-source" data-i18n-title="使用说明" title="使用说明">?</button><span class="zoom-badge" data-i18n>点击放大</span></div>
           <div class="fig-box"><img src="{{ url_for('static', filename='figures/source_composition.png') }}" alt="批次来源构成图" loading="lazy"></div>
         </div>
-        <div class="paper-figure card" data-zoom="figures/value_dumbbell.png" data-cap="主题价值排名（条形 + 排名位移哑铃图）">
+        <div class="paper-figure card" data-zoom="figures/value_dumbbell.png" data-desc="哑铃图：横轴为机会价值分，两个端点分别表示基准排序与权重扰动后的排序。连线越短说明该主题簇在权重变化下排名越稳定，头部簇基本不动。" data-cap="主题价值排名（条形 + 排名位移哑铃图）">
           <div class="card-head"><h2 data-i18n>价值排名 · 条形哑铃图</h2><span class="hint" data-i18n>头部稳定，权重扰动下排名位移有限</span><button class="help-btn" data-help="ins-value" data-i18n-title="使用说明" title="使用说明">?</button><span class="zoom-badge" data-i18n>点击放大</span></div>
           <div class="fig-box"><img src="{{ url_for('static', filename='figures/value_dumbbell.png') }}" alt="价值排名条形哑铃图" loading="lazy"></div>
         </div>
       </div>
 
       <div class="grid2" style="margin-top:12px">
-        <div class="paper-figure card" data-zoom="figures/tsne.png" data-cap="聚类结果分布（t-SNE 散点图）">
+        <div class="paper-figure card" data-zoom="figures/tsne.png" data-desc="t-SNE散点图：把1728条机会的高维文本语义压缩到二维平面，每个点是一条机会，颜色代表所属主题簇。同类聚在一起说明聚类效果好。" data-cap="聚类结果分布（t-SNE 散点图）">
           <div class="card-head"><h2 data-i18n>聚类分布 · t-SNE</h2><span class="hint" data-i18n>1728 条机会在语义空间连续分布</span><button class="help-btn" data-help="ins-tsne" data-i18n-title="使用说明" title="使用说明">?</button><span class="zoom-badge" data-i18n>点击放大</span></div>
           <div class="fig-box"><img src="{{ url_for('static', filename='figures/tsne.png') }}" alt="聚类分布t-SNE图" loading="lazy"></div>
         </div>
-        <div class="paper-figure card" data-zoom="figures/semantic_scatter.png" data-cap="语义空间散点（TF-IDF → LSA → PCA）">
+        <div class="paper-figure card" data-zoom="figures/semantic_scatter.png" data-desc="语义空间散点：文本经TF-IDF→LSA→PCA逐步降维后投影到二维，颜色区分55个主题簇。点分布连续说明主题之间存在语义过渡。" data-cap="语义空间散点（TF-IDF → LSA → PCA）">
           <div class="card-head"><h2 data-i18n>语义空间散点</h2><span class="hint" data-i18n>按 55 个主题簇着色，颜色区分语义群</span><button class="help-btn" data-help="ins-semantic" data-i18n-title="使用说明" title="使用说明">?</button><span class="zoom-badge" data-i18n>点击放大</span></div>
           <div class="fig-box"><img src="{{ url_for('static', filename='figures/semantic_scatter.png') }}" alt="语义空间散点图" loading="lazy"></div>
         </div>
       </div>
 
       <div class="grid2" style="margin-top:12px">
-        <div class="paper-figure card" data-zoom="figures/contrib3d.png" data-cap="机会价值分的三维度加权贡献分解">
+        <div class="paper-figure card" data-zoom="figures/contrib3d.png" data-desc="堆叠柱状图：把每个主题簇的价值分拆成多源指向度、记录规模、商业信号三项贡献。柱子越高总分越高，颜色段越宽表示该项贡献越大。" data-cap="机会价值分的三维度加权贡献分解">
           <div class="card-head"><h2 data-i18n>三维度加权贡献</h2><span class="hint" data-i18n>多源指向 × 记录规模 × 商业信号</span><button class="help-btn" data-help="ins-contrib" data-i18n-title="使用说明" title="使用说明">?</button><span class="zoom-badge" data-i18n>点击放大</span></div>
           <div class="fig-box"><img src="{{ url_for('static', filename='figures/contrib3d.png') }}" alt="三维度加权贡献图" loading="lazy"></div>
         </div>
-        <div class="paper-figure card" data-zoom="figures/sensitivity.png" data-cap="权重敏感性分析（热力图 + 小多图 + 参数曲线）">
+        <div class="paper-figure card" data-zoom="figures/sensitivity.png" data-desc="小多图+热力图：改变三项权重时观察Top5主题簇与排序相关系数的变化。基准权重附近曲线平稳，说明排名结论稳健、不依赖单一权重。" data-cap="权重敏感性分析（热力图 + 小多图 + 参数曲线）">
           <div class="card-head"><h2 data-i18n>权重敏感性分析</h2><span class="hint" data-i18n>基准权重附近排序稳定，极端纯多源时下降</span><button class="help-btn" data-help="ins-sens" data-i18n-title="使用说明" title="使用说明">?</button><span class="zoom-badge" data-i18n>点击放大</span></div>
           <div class="fig-box"><img src="{{ url_for('static', filename='figures/sensitivity.png') }}" alt="权重敏感性分析图" loading="lazy"></div>
         </div>
       </div>
 
       <div class="grid2" style="margin-top:12px">
-        <div class="paper-figure card" data-zoom="figures/confusion.png" data-cap="规则判别混淆矩阵（金标准评估）">
+        <div class="paper-figure card" data-zoom="figures/confusion.png" data-desc="混淆矩阵：用120条人工金标准检验规则判别的准确性。主对角线越集中说明判得越准，本模型Precision 1.000、Recall 0.880。" data-cap="规则判别混淆矩阵（金标准评估）">
           <div class="card-head"><h2 data-i18n>规则判别 · 混淆矩阵</h2><span class="hint" data-i18n>金标准 120 条 · Precision 1.000 / Recall 0.880</span><button class="help-btn" data-help="ins-confmat" data-i18n-title="使用说明" title="使用说明">?</button><span class="zoom-badge" data-i18n>点击放大</span></div>
           <div class="fig-box"><img src="{{ url_for('static', filename='figures/confusion.png') }}" alt="混淆矩阵图" loading="lazy"></div>
         </div>
-        <div class="paper-figure card" data-zoom="figures/cluster_quality.png" data-cap="簇规模与聚类质量指标（轮廓系数 / ARI）">
+        <div class="paper-figure card" data-zoom="figures/cluster_quality.png" data-desc="组合图：左侧为55个主题簇的记录数规模分布，右侧为各批次的轮廓系数与ARI指标，用于衡量聚类是否紧凑、批次间是否一致。" data-cap="簇规模与聚类质量指标（轮廓系数 / ARI）">
           <div class="card-head"><h2 data-i18n>簇规模与聚类质量</h2><span class="hint" data-i18n>55 簇规模分布 · 各批次轮廓系数 / ARI</span><button class="help-btn" data-help="ins-quality" data-i18n-title="使用说明" title="使用说明">?</button><span class="zoom-badge" data-i18n>点击放大</span></div>
           <div class="fig-box"><img src="{{ url_for('static', filename='figures/cluster_quality.png') }}" alt="簇规模与质量指标图" loading="lazy"></div>
         </div>
@@ -509,8 +508,10 @@
   <figure>
     <img id="lbImg" src="" alt="">
     <figcaption id="lbCap"></figcaption>
+    <p class="lb-desc" id="lbDesc"></p>
   </figure>
 </div>
+<div id="figTip" role="tooltip"></div>
 
 <div id="toast"></div>
 <script src="{{ url_for('static', filename='app.js') }}"></script>

@@ -180,13 +180,16 @@
     '批次 <b>{b}</b> 正在采集与计算，页面会自动刷新（通常 20–90 秒）。': 'Batch <b>{b}</b> is collecting and computing; this page auto-refreshes (usually 20–90 s).',
     /* 概览 / 数据分析：论文级图表 */
     '点击放大': 'Click to zoom',
-    '任务一至任务四核心结果一览：数据规模、机会分布、主题簇价值与信息多元性。点击任意图可放大查看细节。': 'Core results from Tasks 1–4: data scale, opportunity distribution, cluster value and source diversity. Click any figure to enlarge.',
-    '主题簇价值排名 · 条形哑铃图': 'Cluster value ranking · bar & dumbbell',
-    'B02 推荐系统以 65.9 分居首，头部集中于推荐与智能体': 'B02 recommender leads at 65.9; top clusters concentrate in recommendation & agents',
-    '价值分三维度加权贡献': '3-dimension weighted value contribution',
-    '多源指向 × 记录规模 × 商业信号': 'Multi-source × record scale × business signal',
+    '悬停查看数值': 'Hover for values',
+    '占比': 'Share',
+    '记录数': 'Records', '来源数': 'Sources', '优先级': 'Priority',
+    '任务一至任务四核心结果一览：数据规模、机会分布、主题簇价值与信息多元性。悬停任意图可查看数值，点击图表可查看说明。': 'Core results from Tasks 1–4: data scale, opportunity distribution, cluster value and source diversity. Hover any chart for values.',
+    '主题簇价值排序': 'Cluster value ranking',
+    '悬停查看簇名、价值分与记录数': 'Hover for cluster name, value and record count',
+    '价值分三维度贡献': '3-dimension value contribution',
+    '悬停查看各维度得分': 'Hover for each dimension score',
     '信息来源多元构成': 'Diverse source composition',
-    '四大来源 × 八批次，多源交叉印证': '4 sources × 8 batches, cross-validated',
+    '悬停查看各来源记录数与占比': 'Hover for record count and share per source',
     '任务一至任务四结果的统计视图与论文级图表：彩色桑基流向、类别分布、语义空间、权重敏感性与价值排名，点击任意图可放大。': 'Statistics and publication-quality figures from Tasks 1–4: Sankey flow, category distribution, semantic space, weight sensitivity and value ranking. Click to enlarge.',
     '论文级图表 · 结果深度分析': 'Publication figures · in-depth analysis',
     '机会类别分布 · 棒棒糖图': 'Opportunity categories · lollipop',
@@ -270,9 +273,9 @@
       zh: ['价值分三维度贡献', '<p>前 8 个簇的价值分堆叠拆解：多源指向度、记录规模、商业信号。可看出每个簇的高分主要来自哪个维度。</p>'],
       en: ['3-dimension value breakdown', '<p>Stacked value scores of the top 8 clusters: multi-source, record scale and business signal. See which dimension drives each cluster’s score.</p>']
     },
-    'over-heat': {
-      zh: ['主题簇 × 来源覆盖', '<p>热力图显示每个簇在各来源网站上的记录数，颜色越深越多。多个来源共同指向同一簇，说明该需求方向更可信。</p>'],
-      en: ['Clusters × source coverage', '<p>Heatmap of record counts per cluster and source; darker means more. Multiple sources pointing to one cluster indicate more credible demand.</p>']
+    'over-source': {
+      zh: ['信息来源多元构成', '<p>南丁格尔玫瑰图（扇形半径随记录数变化）：每个扇形是一个公开采集来源，面积越大表示该来源贡献的记录越多。</p><p>四个来源并存、半径相近，说明信息来自多个独立渠道而非单一站点，多源交叉印证使机会判别更可信。鼠标悬停可看具体记录数与占比。</p>'],
+      en: ['Diverse source composition', '<p>Nightingale rose chart (sector radius scales with record count): each sector is a public collection source; larger area means more records contributed.</p><p>Four comparable sources show information comes from multiple independent channels rather than a single site — cross-validation makes detection more credible. Hover for exact counts and shares.</p>']
     },
     'ins-sankey': {
       zh: ['彩色桑基流向图', '<p>从「采集清洗去重」出发，分成「AI 应用机会」与「未构成机会」，再流向各主题簇。<b>流向宽度 = 记录规模</b>，颜色区分主题。鼠标悬停可看具体数值。</p><p>这是替代传统漏斗的呈现方式，数据来自基线 4322 条。</p>'],
