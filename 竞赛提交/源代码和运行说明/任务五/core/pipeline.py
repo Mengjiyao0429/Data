@@ -94,6 +94,22 @@ def _next_batch_id_unlocked():
     if os.path.isdir(BATCH_ROOT):
         for d in os.listdir(BATCH_ROOT):
             used.add(d)
+    # 关键：把 app.db 的 batches 表里已占用的编号也算进去。
+    # 采集失败的批次可能只写库、未建目录，漏掉会导致重复分配触发唯一约束错误。
+    try:
+        import sqlite3
+        db_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+                               "instance", "app.db")
+        if os.path.exists(db_path):
+            conn = sqlite3.connect(db_path, timeout=10)
+            try:
+                for (bid,) in conn.execute("SELECT bid FROM batches"):
+                    if bid:
+                        used.add(bid)
+            finally:
+                conn.close()
+    except Exception:
+        pass
     n = 1
     while "B%02d" % n in used:
         n += 1
@@ -188,8 +204,8 @@ NAME_NOISE = set("have has had do does did will would can could should may might
 
 
 def tokenize(text):
-    """英文按词切、中文用 jieba；避免把英文词切碎（gitma / mudevelops 这类碎片）。"""
-    import jieba
+    """英文按词切、中文用 jieba；避免把英文词切碎（gitma / mudevelops 这类碎片）。
+    无 jieba 环境降级为 2-gram 切分，保证采集/聚类流水线可用。"""
     low = (text or "").lower()
     ascii_words = re.findall(r"[a-z0-9][a-z0-9_+#.-]{1,}", low)
     zh_text = re.sub(r"[a-z0-9_+#.\-]+", " ", low)
@@ -200,7 +216,16 @@ def tokenize(text):
         if w.isdigit():
             continue
         out.append(w)
-    for w in jieba.cut(zh_text):
+    try:
+        import jieba
+        zh_segments = list(jieba.cut(zh_text))
+    except ImportError:
+        # 降级：逐段中文串做 2-gram，跳过停用词/单字
+        zh_segments = []
+        for seg in re.findall(r"[\u4e00-\u9fa5]+", zh_text):
+            for i in range(len(seg) - 1):
+                zh_segments.append(seg[i:i + 2])
+    for w in zh_segments:
         w = w.strip()
         if not w or w in CN_STOP or len(w) < 2:
             continue

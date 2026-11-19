@@ -15,11 +15,21 @@ STOP = set("的 了 和 与 是 在 有 为 对 及 或 这 那 个 我 你 他 
 
 
 def _tokens(q):
-    import jieba
     q = (q or "").lower()
     en = re.findall(r"[a-z][a-z0-9]{1,}", q)
-    zh = [w.strip() for w in jieba.cut(q)
-          if re.fullmatch(r"[\u4e00-\u9fff]{2,}", w.strip()) and w.strip() not in STOP]
+    zh_chars = re.findall(r"[\u4e00-\u9fff]", q)
+    try:
+        import jieba
+        zh = [w.strip() for w in jieba.cut(q)
+              if re.fullmatch(r"[\u4e00-\u9fff]{2,}", w.strip()) and w.strip() not in STOP]
+    except ImportError:
+        # 无 jieba 环境降级：用 2/3 字滑窗近似中文词，保证问答功能离线可用
+        zh = []
+        for n in (3, 2):
+            for i in range(len(zh_chars) - n + 1):
+                w = "".join(zh_chars[i:i + n])
+                if w not in STOP:
+                    zh.append(w)
     return list(dict.fromkeys(en + zh))
 
 

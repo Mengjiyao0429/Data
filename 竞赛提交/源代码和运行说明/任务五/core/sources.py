@@ -244,6 +244,24 @@ def collect_replay(query, limit=200, proxy=None):
         return [], ["本地语料不存在，回放不可用"]
     terms = [t.lower() for t in re.split(r"[\s,，、/]+", query) if len(t) >= 2]
     generic = {"ai", "aigc", "人工智能", "智能", "大模型", "模型", "llm", "gpt", "机器学习"}
+    # 中文需求词 → 英文语料关键词映射（本地语料以英文为主，便于中文用户输入中文也能命中）
+    ZH2EN = {
+        "代码助手": "coding assistant", "代码生成": "code generation", "智能编程": "coding assistant",
+        "推荐系统": "recommendation", "推荐": "recommendation", "聊天机器人": "chatbot",
+        "对话问答": "chatbot question answering", "智能客服": "customer support chatbot",
+        "知识库": "knowledge base", "知识图谱": "knowledge graph", "语音识别": "speech recognition",
+        "图像识别": "image recognition", "智能体": "agent", "自动化": "automation",
+        "数据分析": "data analysis", "医疗": "healthcare medical", "教育": "education",
+        "金融": "finance fintech", "电商": "e-commerce", "客服": "customer support",
+        "编程": "coding programming", "助手": "assistant", "翻译": "translation",
+        "搜索": "search", "运维": "devops", "安全": "security", "检测": "detection",
+    }
+    expanded = list(terms)
+    for t in terms:
+        for zh, en in ZH2EN.items():
+            if zh in t or t in zh:
+                expanded.append(en)
+    terms = list(dict.fromkeys(expanded))
     specific = [t for t in terms if t not in generic]
     terms = specific or terms
     rows = list(csv.DictReader(open(csv_path, encoding="utf-8-sig")))

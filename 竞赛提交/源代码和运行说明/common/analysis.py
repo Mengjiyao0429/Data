@@ -19,7 +19,33 @@ import re
 from collections import Counter, defaultdict
 
 import numpy as np
-import jieba
+try:
+    import jieba
+except ImportError:
+    # 无 jieba 环境降级：用最大化词典的 2-gram 切分近似中文分词，
+    # 保证采集/聚类流水线与问答在没有第三方分词库时仍可用。
+    class _JiebaFallback:
+        def setLogLevel(self, *a, **k):
+            pass
+
+        def add_word(self, *a, **k):
+            pass
+
+        def cut(self, text, *a, **k):
+            text = text or ""
+            segs = re.findall(r"[\u4e00-\u9fff]+|[A-Za-z0-9_+#.\-]+", text)
+            out = []
+            for seg in segs:
+                if re.match(r"[A-Za-z0-9]", seg):
+                    out.append(seg.lower())
+                elif len(seg) == 1:
+                    out.append(seg)
+                else:
+                    for i in range(len(seg) - 1):
+                        out.append(seg[i:i + 2])
+            return iter(out)
+
+    jieba = _JiebaFallback()
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.decomposition import TruncatedSVD
 from sklearn.cluster import KMeans

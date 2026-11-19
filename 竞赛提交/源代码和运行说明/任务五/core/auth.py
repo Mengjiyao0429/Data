@@ -20,6 +20,16 @@ from werkzeug.security import check_password_hash, generate_password_hash
 
 from . import db
 
+
+def _hash_password(password):
+    """生成口令哈希；无 scrypt 支持的环境自动回退到 pbkdf2，避免登录/建号报 500。"""
+    try:
+        if "scrypt" in hashlib.algorithms_available:
+            return generate_password_hash(password, method="scrypt")
+    except Exception:
+        pass
+    return generate_password_hash(password, method="pbkdf2:sha256:260000")
+
 ROLES = ("requester", "decision")
 ROLE_LABELS = {"requester": "需求发起者", "decision": "决策者"}
 
@@ -61,7 +71,7 @@ def create_user(username, password, role, display=""):
     with _conn() as c:
         c.execute("INSERT OR REPLACE INTO users(username,pw_hash,role,display,active,created_at) "
                   "VALUES(?,?,?,?,1,?)",
-                  (username, generate_password_hash(password, method="scrypt"), role,
+                  (username, _hash_password(password), role,
                    display or username, datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
 
 
@@ -88,7 +98,7 @@ def change_password(username, old, new):
         return False
     with _conn() as c:
         c.execute("UPDATE users SET pw_hash=? WHERE username=?",
-                  (generate_password_hash(new, method="scrypt"), username))
+                  (_hash_password(new), username))
     return True
 
 
