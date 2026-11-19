@@ -3,54 +3,58 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>登录 · AI 应用场景机会评估系统</title>
+<title>登录 · 智掘 AI Discovery</title>
 <link rel="icon" href="data:,">
 <style>
-  :root{--brand:#0e2740;--accent:#1a7f8e;--ink:#16283c;--muted:#6b8299}
+  :root{--accent:#138a8a;--ink:#16283c;--muted:#6b8299}
   *{box-sizing:border-box}
   body{margin:0;min-height:100vh;font-family:"Inter","Microsoft YaHei","Segoe UI",system-ui,sans-serif;
     color:var(--ink);display:flex;align-items:center;justify-content:center;padding:24px;
-    background:linear-gradient(150deg,#0b1f33 0%,#123650 45%,#0e5c66 100%);position:relative;overflow:hidden}
+    background:linear-gradient(150deg,#eef3f8 0%,#e3eef5 45%,#dcefee 100%);position:relative;overflow:hidden}
   body::before{content:"";position:absolute;inset:0;
-    background:radial-gradient(60% 80% at 85% 15%,rgba(45,212,191,.18),transparent 60%),
-               radial-gradient(50% 60% at 10% 90%,rgba(37,99,166,.28),transparent 60%)}
-  body::after{content:"";position:absolute;inset:0;opacity:.16;
-    background-image:linear-gradient(rgba(255,255,255,.12) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.12) 1px,transparent 1px);
+    background:radial-gradient(60% 80% at 85% 15%,rgba(19,138,138,.12),transparent 60%),
+               radial-gradient(50% 60% at 10% 90%,rgba(37,99,166,.12),transparent 60%)}
+  body::after{content:"";position:absolute;inset:0;opacity:.35;
+    background-image:linear-gradient(rgba(31,95,144,.06) 1px,transparent 1px),linear-gradient(90deg,rgba(31,95,144,.06) 1px,transparent 1px);
     background-size:44px 44px;mask-image:radial-gradient(circle at 50% 50%,#000,transparent 75%)}
-  .wrap{position:relative;z-index:2;width:100%;max-width:920px;display:grid;grid-template-columns:1.05fr .95fr;
-    background:#fff;border-radius:18px;overflow:hidden;box-shadow:0 24px 70px rgba(3,15,28,.4)}
-  .intro{padding:48px 44px;color:#fff;background:linear-gradient(160deg,#0f2b45,#114a5a);
+  .wrap{position:relative;z-index:2;width:100%;max-width:900px;display:grid;grid-template-columns:1.05fr .95fr;
+    background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 20px 60px rgba(16,42,67,.16)}
+  .intro{padding:40px 40px;color:var(--ink);background:linear-gradient(160deg,#eef6f7,#e8f0fa);
     display:flex;flex-direction:column;position:relative;overflow:hidden}
-  .intro::before{content:"";position:absolute;width:280px;height:280px;border:1px solid rgba(94,234,212,.16);
+  .intro::before{content:"";position:absolute;width:260px;height:260px;border:1px solid rgba(19,138,138,.16);
     border-radius:50%;right:-90px;top:-70px}
-  .intro::after{content:"";position:absolute;width:200px;height:200px;border:1px solid rgba(94,234,212,.12);
+  .intro::after{content:"";position:absolute;width:190px;height:190px;border:1px solid rgba(19,138,138,.12);
     border-radius:50%;right:-40px;top:-20px}
-  .logo{width:46px;height:46px;border-radius:13px;display:grid;place-items:center;
-    background:linear-gradient(135deg,#2dd4bf,#2563a6);box-shadow:0 8px 20px rgba(45,212,191,.3)}
-  .logo svg{width:26px;height:26px}
-  .intro h1{font-size:24px;font-weight:600;line-height:1.4;margin:30px 0 10px;letter-spacing:.3px}
-  .intro .en{font-size:11px;letter-spacing:2.4px;color:#5eead4;text-transform:uppercase;margin-bottom:20px}
-  .intro p{font-size:13px;color:#a9c6da;line-height:1.9;margin:0}
-  .intro .feats{margin-top:auto;display:flex;flex-direction:column;gap:12px;padding-top:28px}
-  .intro .feat{display:flex;align-items:center;gap:11px;font-size:12.5px;color:#cfe2ef}
-  .intro .feat svg{width:17px;height:17px;color:#5eead4;flex:0 0 17px}
-  .panel{padding:48px 46px}
-  .panel h2{font-size:20px;font-weight:600;margin:0 0 6px;color:var(--ink)}
-  .panel .sub{font-size:12.5px;color:var(--muted);margin:0 0 30px}
-  .row{margin-bottom:18px}
-  .row label{display:block;font-size:12px;color:#4a5f75;margin-bottom:8px;font-weight:500}
+  .logo{width:44px;height:44px;border-radius:12px;display:grid;place-items:center;
+    background:linear-gradient(135deg,#138a8a,#2563a6);color:#fff;box-shadow:0 8px 18px rgba(19,138,138,.25)}
+  .logo svg{width:25px;height:25px}
+  .intro h1{font-size:26px;font-weight:600;line-height:1.35;margin:28px 0 8px;letter-spacing:.2px;color:#1f5f90}
+  .intro .en{font-size:10.5px;letter-spacing:2.2px;color:#138a8a;text-transform:uppercase;margin-bottom:18px}
+  .intro p{font-size:12.5px;color:#5b7186;line-height:1.85;margin:0}
+  .intro .feats{margin-top:auto;display:flex;flex-direction:column;gap:11px;padding-top:24px}
+  .intro .feat{display:flex;align-items:center;gap:10px;font-size:12px;color:#41607a}
+  .intro .feat svg{width:16px;height:16px;color:#138a8a;flex:0 0 16px}
+  .panel{padding:40px 40px;position:relative}
+  .lang-switch{position:absolute;top:16px;right:18px;display:flex;border:1px solid var(--line,#dbe4ee);border-radius:7px;overflow:hidden}
+  .lang-switch button{border:0;background:#fff;color:#8296aa;padding:4px 10px;font-size:11px;cursor:pointer}
+  .lang-switch button+button{border-left:1px solid #dbe4ee}
+  .lang-switch button.on{background:#1f5f90;color:#fff;font-weight:600}
+  .panel h2{font-size:19px;font-weight:600;margin:0 0 6px;color:var(--ink)}
+  .panel .sub{font-size:12px;color:var(--muted);margin:0 0 26px}
+  .row{margin-bottom:16px}
+  .row label{display:block;font-size:11.5px;color:#4a5f75;margin-bottom:7px;font-weight:500}
   .row .field{position:relative}
   .row .field svg{position:absolute;left:13px;top:50%;transform:translateY(-50%);width:17px;height:17px;color:#9ab0c4}
-  .row input{width:100%;padding:12px 14px 12px 40px;border:1px solid #dbe4ee;border-radius:9px;
-    font-size:14px;outline:none;transition:.15s;background:#fbfdff}
-  .row input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(26,127,142,.12);background:#fff}
-  button{width:100%;padding:12px;border:0;border-radius:9px;background:linear-gradient(135deg,#1a7f8e,#1d4e79);
-    color:#fff;font-size:14px;font-weight:500;cursor:pointer;margin-top:8px;transition:.15s;
-    box-shadow:0 6px 16px rgba(26,127,142,.28)}
-  button:hover{filter:brightness(1.08);transform:translateY(-1px)}
+  .row input{width:100%;padding:11px 14px 11px 40px;border:1px solid #dbe4ee;border-radius:8px;
+    font-size:13px;outline:none;transition:.15s;background:#fbfdff}
+  .row input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(19,138,138,.12);background:#fff}
+  button.loginbtn{width:100%;padding:11px;border:0;border-radius:8px;background:linear-gradient(135deg,#138a8a,#1d4e79);
+    color:#fff;font-size:13.5px;font-weight:500;cursor:pointer;margin-top:8px;transition:.15s;
+    box-shadow:0 6px 16px rgba(19,138,138,.22)}
+  button.loginbtn:hover{filter:brightness(1.08);transform:translateY(-1px)}
   .err{font-size:12px;color:#d64550;min-height:18px;margin-top:10px}
-  .hint{font-size:11px;color:#93a7ba;margin-top:20px;line-height:1.8;border-top:1px dashed #e1e9f1;padding-top:16px}
-  .hint code{background:#eef3f8;color:#1d4e79;padding:1px 6px;border-radius:4px;font-size:11px}
+  .hint{font-size:11px;color:#8296aa;margin-top:18px;line-height:1.75;border-top:1px dashed #e1e9f1;padding-top:14px}
+  .hint code{background:#eef3f8;color:#1f5f90;padding:1px 6px;border-radius:4px;font-size:11px}
   @media(max-width:760px){.wrap{grid-template-columns:1fr;max-width:420px}.intro{display:none}}
 </style>
 </head>
@@ -58,51 +62,91 @@
 <div class="wrap">
   <div class="intro">
     <div class="logo">
-      <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
         <circle cx="12" cy="12" r="2.2"/><ellipse cx="12" cy="12" rx="9.5" ry="4.2" transform="rotate(-28 12 12)"/>
         <ellipse cx="12" cy="12" rx="9.5" ry="4.2" transform="rotate(38 12 12)"/>
       </svg>
     </div>
-    <h1>AI 应用场景<br>智能挖掘与机会评估系统</h1>
-    <div class="en">Discovery · Evaluation · Decision</div>
-    <p>面向科研的需求驱动分析平台，覆盖多源采集、机会判别、主题聚类与价值评估，交付可溯源、可交互的决策支持。</p>
+    <h1 id="iTitle">智掘 AI Discovery</h1>
+    <div class="en" id="iEn">DISCOVER · EVALUATE · DECIDE</div>
+    <p id="iDesc">面向科研的需求驱动分析平台，覆盖多源采集、机会判别、主题聚类与价值评估，交付可溯源、可交互的决策支持。</p>
     <div class="feats">
-      <div class="feat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 15l4-5 3 3 5-7"/></svg>全流程数据洞察与可视化</div>
-      <div class="feat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>高价值机会选取与优先级排序</div>
-      <div class="feat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>立项策划案生成与导出</div>
+      <div class="feat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 15l4-5 3 3 5-7"/></svg><span data-i18n>全流程数据洞察与可视化</span></div>
+      <div class="feat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg><span data-i18n>高价值机会选取与优先级排序</span></div>
+      <div class="feat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg><span data-i18n>立项策划案生成与导出</span></div>
     </div>
   </div>
   <div class="panel">
-    <h2>登录系统</h2>
-    <p class="sub">请使用分配的账号登录以继续</p>
+    <div class="lang-switch" role="group" aria-label="Language">
+      <button data-lang="zh" class="on">中</button><button data-lang="en">EN</button>
+    </div>
+    <h2 data-i18n>登录系统</h2>
+    <p class="sub" data-i18n>请使用分配的账号登录以继续</p>
     <form id="loginForm">
-      <div class="row"><label>用户名</label><div class="field">
+      <div class="row"><label data-i18n>用户名</label><div class="field">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>
-        <input id="u" autocomplete="username" placeholder="请输入用户名"></div></div>
-      <div class="row"><label>口令</label><div class="field">
+        <input id="u" autocomplete="username" data-i18n-ph="请输入用户名" placeholder="请输入用户名"></div></div>
+      <div class="row"><label data-i18n>口令</label><div class="field">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
-        <input id="p" type="password" autocomplete="current-password" placeholder="请输入口令"></div></div>
-      <button type="submit">登 录</button>
+        <input id="p" type="password" autocomplete="current-password" data-i18n-ph="请输入口令" placeholder="请输入口令"></div></div>
+      <button type="submit" class="loginbtn" data-i18n>登 录</button>
       <div class="err" id="err"></div>
     </form>
-    <div class="hint">
+    <div class="hint" id="loginHint">
       演示账号：需求发起者 <code>analyst / analyst@123</code>；决策者 <code>decision / decision@123</code>。<br>
       角色由服务端会话判定，客户端无法伪造。部署时请修改口令。
     </div>
   </div>
 </div>
 <script>
-document.getElementById('loginForm').addEventListener('submit', async function(e){
-  e.preventDefault();
-  const err=document.getElementById('err'); err.textContent='';
-  try{
-    const r=await fetch('/api/login',{method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({username:document.getElementById('u').value.trim(),password:document.getElementById('p').value})});
-    const d=await r.json();
-    if(!r.ok){err.textContent=d.error||'登录失败';return;}
-    location.href='/';
-  }catch(ex){err.textContent='网络错误：'+ex.message;}
-});
+(function(){
+  var DICT={
+    '全流程数据洞察与可视化':'End-to-end data insights & visualization',
+    '高价值机会选取与优先级排序':'High-value selection & priority ranking',
+    '立项策划案生成与导出':'Proposal generation & export',
+    '登录系统':'Sign in','请使用分配的账号登录以继续':'Use your assigned account to continue',
+    '用户名':'Username','口令':'Password','请输入用户名':'Enter username','请输入口令':'Enter password',
+    '登 录':'SIGN IN',
+    'ZH_DESC':'面向科研的需求驱动分析平台，覆盖多源采集、机会判别、主题聚类与价值评估，交付可溯源、可交互的决策支持。',
+    'EN_DESC':'A requirement-driven research platform covering multi-source collection, opportunity detection, topic clustering and value scoring, delivering traceable and interactive decision support.',
+    'ZH_HINT':'演示账号：需求发起者 <code>analyst / analyst@123</code>；决策者 <code>decision / decision@123</code>。<br>角色由服务端会话判定，客户端无法伪造。部署时请修改口令。',
+    'EN_HINT':'Demo accounts: Requester <code>analyst / analyst@123</code>; Decision maker <code>decision / decision@123</code>.<br>Roles are enforced server-side and cannot be forged. Change passwords before deployment.'
+  };
+  var lang='zh';
+  try{lang=localStorage.getItem('t5_lang')||'zh';}catch(e){}
+  if(lang!=='en')lang='zh';
+  function apply(){
+    document.documentElement.lang=lang==='en'?'en':'zh-CN';
+    document.title=(lang==='en'?'Sign in · AI Discovery':'登录 · 智掘 AI Discovery');
+    document.getElementById('iTitle').textContent=(lang==='en'?'AI Discovery':'智掘 AI Discovery');
+    document.getElementById('iDesc').textContent=DICT[lang==='en'?'EN_DESC':'ZH_DESC'];
+    document.getElementById('loginHint').innerHTML=DICT[lang==='en'?'EN_HINT':'ZH_HINT'];
+    document.querySelectorAll('[data-i18n]').forEach(function(el){
+      if(!el.dataset.zhSrc)el.dataset.zhSrc=el.textContent;
+      el.textContent=(lang==='en'&&DICT[el.dataset.zhSrc])?DICT[el.dataset.zhSrc]:el.dataset.zhSrc;
+    });
+    document.querySelectorAll('[data-i18n-ph]').forEach(function(el){
+      if(!el.dataset.zhPh)el.dataset.zhPh=el.getAttribute('placeholder')||'';
+      el.setAttribute('placeholder',(lang==='en'&&DICT[el.dataset.zhPh])?DICT[el.dataset.zhPh]:el.dataset.zhPh);
+    });
+    document.querySelectorAll('.lang-switch button').forEach(function(b){b.classList.toggle('on',b.getAttribute('data-lang')===lang);});
+  }
+  document.querySelectorAll('.lang-switch button').forEach(function(b){
+    b.addEventListener('click',function(){lang=b.getAttribute('data-lang')==='en'?'en':'zh';try{localStorage.setItem('t5_lang',lang);}catch(e){}apply();});
+  });
+  apply();
+  document.getElementById('loginForm').addEventListener('submit', async function(e){
+    e.preventDefault();
+    var err=document.getElementById('err');err.textContent='';
+    try{
+      var r=await fetch('/api/login',{method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({username:document.getElementById('u').value.trim(),password:document.getElementById('p').value})});
+      var d=await r.json();
+      if(!r.ok){err.textContent=d.error||(lang==='en'?'Sign-in failed':'登录失败');return;}
+      location.href='/';
+    }catch(ex){err.textContent=(lang==='en'?'Network error: ':'网络错误：')+ex.message;}
+  });
+})();
 </script>
 </body>
 </html>

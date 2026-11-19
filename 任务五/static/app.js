@@ -1,4 +1,4 @@
-/* 任务五 前端交互 */
+/* 智掘 AI Discovery · 前端交互（双语） */
 (function () {
   'use strict';
 
@@ -10,14 +10,16 @@
 
   const $ = (s) => document.querySelector(s);
   const el = (id) => document.getElementById(id);
+  const T = (s) => (window.T ? window.T(s) : s);
+  const TF = (s, v) => (window.TF ? window.TF(s, v) : s);
 
   async function api(path, opts) {
     const o = Object.assign({ headers: {} }, opts || {});
     o.headers = Object.assign({ 'Content-Type': 'application/json' }, o.headers);
     const res = await fetch(path, o);
     let data = {};
-    try { data = await res.json(); } catch (e) { data = { error: '响应解析失败' }; }
-    if (res.status === 401 && data.need_login) { location.href = '/login'; throw new Error('未登录'); }
+    try { data = await res.json(); } catch (e) { data = { error: T('响应解析失败') }; }
+    if (res.status === 401 && data.need_login) { location.href = '/login'; throw new Error(T('未登录')); }
     if (!res.ok) throw new Error(data.error || ('HTTP ' + res.status));
     return data;
   }
@@ -30,7 +32,10 @@
     toast._t = setTimeout(() => t.classList.remove('show'), ms || 2600);
   }
 
-  function fmt(n) { return (n === null || n === undefined) ? '—' : Number(n).toLocaleString('zh-CN'); }
+  function fmt(n) {
+    if (n === null || n === undefined) return '—';
+    return Number(n).toLocaleString(window.I18N && I18N.getLang() === 'en' ? 'en-US' : 'zh-CN');
+  }
 
   /* ---------------- Markdown -> HTML（先转义再渲染，避免注入） ---------------- */
   function esc(s) {
@@ -68,12 +73,15 @@
 
   /* ---------------- 页面切换 ---------------- */
   const PAGES = { new: '需求发起', overview: '概览看板', insight: '数据分析', batch: '批次分析', select: '机会选取', ask: '智能问答', library: '策划案库', settings: '系统设置' };
+  let currentPage = 'overview';
   function showPage(name) {
+    currentPage = name;
     document.querySelectorAll('.nav a').forEach((a) => a.classList.toggle('active', a.dataset.page === name));
     Object.keys(PAGES).forEach((k) => el('page-' + k).classList.toggle('hidden', k !== name));
-    el('crumb').textContent = PAGES[name] || name;
+    el('crumb').textContent = T(PAGES[name] || name);
     if (name === 'overview') { initCharts(); setTimeout(resizeCharts, 60); }
     if (name === 'library') loadLibrary();
+    if (window.innerWidth <= 820) document.body.classList.remove('nav-open');
     window.dispatchEvent(new CustomEvent('page:change', { detail: { name: name } }));
   }
   document.querySelectorAll('.nav a').forEach((a) => {
@@ -84,10 +92,13 @@
   function applyMe(me) {
     state.me = me;
     const isDecision = me && me.role === 'decision';
-    el('userPill').textContent = me ? ((me.display || me.username) + (isDecision ? ' · 决策者' : ' · 需求发起者')) : '未登录';
-    el('roleNotice').textContent = isDecision
-      ? '当前角色为「决策者」：可修改模型配置、查看审计日志，也可选取机会并生成策划案。'
-      : '当前角色为「需求发起者」：可浏览、选取机会、生成策划案；系统配置仅决策者可修改。';
+    el('userPill').textContent = me
+      ? ((me.display || me.username) + (isDecision ? ' · ' + T('决策者') : ' · ' + T('需求发起者')))
+      : T('未登录');
+    el('roleNotice').innerHTML = (window.I18N && I18N.HTML[isDecision ? 'notice.roleDecision' : 'notice.roleRequester']
+      ? (I18N.getLang() === 'en' ? I18N.HTML[isDecision ? 'notice.roleDecision' : 'notice.roleRequester'].en
+                                 : I18N.HTML[isDecision ? 'notice.roleDecision' : 'notice.roleRequester'].zh)
+      : '');
     el('roleNotice').className = 'notice' + (isDecision ? ' blue' : '');
   }
   el('btnLogout').addEventListener('click', async () => {
@@ -96,26 +107,34 @@
   });
 
   /* ---------------- 概览图表 ---------------- */
-  const PALETTE = ['#2E5C8A', '#4F81BD', '#7BA7CD', '#3F9DB3', '#7BA24A', '#E8894A', '#C0504D', '#8AA0B6'];
+  function chartText() {
+    return {
+      records: T('簇内机会记录数'), value: T('机会价值分'), score: T('得分'),
+      multi: T('多源指向度'), scale: T('记录规模'), biz: T('商业信号'),
+      recordsTip: T('记录数'), sourcesTip: T('来源数'), priorityTip: T('优先级'),
+      valueTip: T('价值分'), countUnit: T('条'),
+    };
+  }
 
   function initCharts() {
     if (state.chartsReady || typeof echarts === 'undefined' || !state.clusters.length) return;
     state.chartsReady = true;
     const cs = state.clusters;
     const m = state.meta;
+    const X = chartText();
 
     const rank = echarts.init(el('chartRank'));
     rank.setOption({
-      grid: { left: 56, right: 26, top: 24, bottom: 44 },
+      grid: { left: 52, right: 22, top: 18, bottom: 42 },
       tooltip: {
         formatter: (p) => {
           const d = p.data;
-          return '<b>' + d[5] + ' ' + d[6] + '</b><br/>记录数：' + d[0] + '<br/>价值分：' + d[1] +
-            '<br/>来源数：' + d[2] + '<br/>优先级：' + d[3];
+          return '<b>' + d[5] + ' ' + d[6] + '</b><br/>' + X.recordsTip + '：' + d[0] + '<br/>' + X.valueTip + '：' + d[1] +
+            '<br/>' + X.sourcesTip + '：' + d[2] + '<br/>' + X.priorityTip + '：' + d[3];
         },
       },
-      xAxis: { name: '簇内机会记录数', nameGap: 24, nameLocation: 'middle', splitLine: { lineStyle: { color: '#eef2f7' } } },
-      yAxis: { name: '机会价值分', nameGap: 40, nameLocation: 'middle', max: 105, splitLine: { lineStyle: { color: '#eef2f7' } } },
+      xAxis: { name: X.records, nameGap: 22, nameLocation: 'middle', splitLine: { lineStyle: { color: '#eef2f7' } } },
+      yAxis: { name: X.value, nameGap: 36, nameLocation: 'middle', max: 105, splitLine: { lineStyle: { color: '#eef2f7' } } },
       series: [{
         type: 'scatter',
         data: cs.map((c) => [c.size, c.score, c.sources.length, c.priority, c.cid, c.cid, c.name]),
@@ -124,10 +143,8 @@
           color: (p) => (p.data[3] <= 3 ? '#C0504D' : p.data[3] <= 8 ? '#4F81BD' : '#8AA0B6'),
           opacity: 0.86, borderColor: '#fff', borderWidth: 1.5,
         },
-        label: {
-          show: true, position: 'top', fontSize: 10, color: '#41576e',
-          formatter: (p) => (p.data[3] <= 6 ? p.data[4] : ''),
-        },
+        label: { show: true, position: 'top', fontSize: 10, color: '#41576e',
+          formatter: (p) => (p.data[3] <= 6 ? p.data[4] : '') },
       }],
     });
     state.charts.rank = rank;
@@ -137,14 +154,14 @@
     contrib.setOption({
       color: ['#2E5C8A', '#4F81BD', '#3F9DB3'],
       tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' } },
-      legend: { top: 0, itemWidth: 12, itemHeight: 8, textStyle: { fontSize: 11 } },
-      grid: { left: 46, right: 18, top: 40, bottom: 52 },
-      xAxis: { type: 'category', data: top8.map((c) => c.cid), axisLabel: { fontSize: 11 } },
-      yAxis: { max: 300, splitLine: { lineStyle: { color: '#eef2f7' } }, name: '得分', nameGap: 26 },
+      legend: { top: 0, itemWidth: 11, itemHeight: 7, textStyle: { fontSize: 10 } },
+      grid: { left: 42, right: 16, top: 34, bottom: 44 },
+      xAxis: { type: 'category', data: top8.map((c) => c.cid), axisLabel: { fontSize: 10 } },
+      yAxis: { max: 300, splitLine: { lineStyle: { color: '#eef2f7' } }, name: X.score, nameGap: 22 },
       series: [
-        { name: '多源指向度', type: 'bar', stack: 'd', data: top8.map((c) => c.dims.src), barWidth: 18 },
-        { name: '记录规模', type: 'bar', stack: 'd', data: top8.map((c) => c.dims.size) },
-        { name: '商业信号', type: 'bar', stack: 'd', data: top8.map((c) => c.dims.biz) },
+        { name: X.multi, type: 'bar', stack: 'd', data: top8.map((c) => c.dims.src), barWidth: 16 },
+        { name: X.scale, type: 'bar', stack: 'd', data: top8.map((c) => c.dims.size) },
+        { name: X.biz, type: 'bar', stack: 'd', data: top8.map((c) => c.dims.biz) },
       ],
     });
     state.charts.contrib = contrib;
@@ -163,18 +180,23 @@
     });
     const heat = echarts.init(el('chartHeat'));
     heat.setOption({
-      tooltip: { formatter: (p) => srcNames[p.data[0]] + ' × ' + cs[p.data[1]].cid + '：' + p.data[2] + ' 条' },
-      grid: { left: 64, right: 20, top: 18, bottom: 62 },
-      xAxis: { type: 'category', data: srcNames, axisLabel: { rotate: 32, fontSize: 10 } },
-      yAxis: { type: 'category', data: cs.map((c) => c.cid), axisLabel: { fontSize: 10 }, inverse: true },
+      tooltip: { formatter: (p) => srcNames[p.data[0]] + ' × ' + cs[p.data[1]].cid + '：' + p.data[2] + ' ' + X.countUnit },
+      grid: { left: 60, right: 18, top: 14, bottom: 56 },
+      xAxis: { type: 'category', data: srcNames, axisLabel: { rotate: 32, fontSize: 9 } },
+      yAxis: { type: 'category', data: cs.map((c) => c.cid), axisLabel: { fontSize: 9 }, inverse: true },
       visualMap: { min: 0, max: Math.max(3, ...heatData.map((d) => d[2])), orient: 'horizontal',
-        left: 'center', bottom: 0, itemWidth: 12, itemHeight: 90, textStyle: { fontSize: 10 },
+        left: 'center', bottom: 0, itemWidth: 11, itemHeight: 76, textStyle: { fontSize: 9 },
         inRange: { color: ['#f3f7fc', '#9dbfdc', '#4F81BD', '#2E5C8A'] } },
       series: [{ type: 'heatmap', data: heatData, itemStyle: { borderColor: '#fff', borderWidth: 1 } }],
     });
     state.charts.heat = heat;
   }
 
+  function disposeCharts() {
+    Object.values(state.charts).forEach((c) => { try { c.dispose(); } catch (e) {} });
+    state.charts = {};
+    state.chartsReady = false;
+  }
   function resizeCharts() {
     Object.values(state.charts).forEach((c) => { try { c.resize(); } catch (e) {} });
   }
@@ -185,16 +207,16 @@
     const m = state.meta, cs = state.clusters;
     el('kpiRecords').textContent = fmt(m.total_records);
     el('kpiOpps').textContent = fmt(m.total_opportunities);
-    el('kpiOppsNote').textContent = '占采集总量 ' + m.opp_rate + '% · 阈值 0.50';
+    el('kpiOppsNote').textContent = TF('占采集总量 {p}% · 阈值 {t}', { p: m.opp_rate, t: '0.60' });
     el('kpiClusters').textContent = fmt(m.clusters);
     const top = cs[0];
     if (top) {
       el('kpiTop').textContent = top.cid;
-      el('kpiTopNote').textContent = top.name + ' · ' + top.score.toFixed(1) + ' 分';
+      el('kpiTopNote').textContent = top.name + ' · ' + top.score.toFixed(1) + ' ' + T('分');
     }
     const mode = state.settings ? state.settings.provider : 'template';
-    el('modePill').textContent = mode === 'template' ? '离线模板模式'
-      : (mode === 'ollama' ? '本地 Ollama' : ('模型：' + (state.settings.model || 'OpenAI 兼容')));
+    el('modePill').textContent = mode === 'template' ? T('离线模板模式')
+      : (mode === 'ollama' ? T('本地 Ollama') : (T('模型') + '：' + (state.settings.model || 'OpenAI')));
   }
 
   /* ---------------- 机会选取 ---------------- */
@@ -202,8 +224,8 @@
     const tb = el('tblBodySelect');
     tb.innerHTML = '';
     if (!list.length) {
-      tb.innerHTML = '<tr><td colspan="9" class="empty">没有符合条件的主题簇</td></tr>';
-      el('tblCount').textContent = '共 0 个';
+      tb.innerHTML = '<tr><td colspan="9" class="empty">' + T('没有符合条件的主题簇') + '</td></tr>';
+      el('tblCount').textContent = T('共 0 个');
       return;
     }
     list.forEach((c) => {
@@ -236,12 +258,12 @@
         updateSelCount();
       });
     });
-    el('tblCount').textContent = '共 ' + list.length + ' 个主题簇';
+    el('tblCount').textContent = TF('共 {n} 个主题簇', { n: list.length });
     updateSelCount();
   }
 
   function updateSelCount() {
-    el('selCount').textContent = '已勾选 ' + state.checked.size + ' 个方向';
+    el('selCount').textContent = TF('已勾选 {n} 个方向', { n: state.checked.size });
     el('btnGenBatch').disabled = state.checked.size === 0;
   }
 
@@ -256,7 +278,7 @@
     try {
       const data = await api(url);
       renderTable(data.items);
-    } catch (e) { toast('加载失败：' + e.message); }
+    } catch (e) { toast(T('加载失败：') + e.message); }
   }
 
   ['qInput', 'fIndustry', 'fFunc', 'fSrc'].forEach((id) => {
@@ -277,12 +299,12 @@
       const c = await api('/api/clusters/' + encodeURIComponent(cid));
       state.current = c;
       el('dTitle').textContent = c.cid + ' · ' + c.name;
-      el('dSub').textContent = c.func + ' ｜ ' + c.industry + ' ｜ ' + c.size + ' 条机会记录 ｜ ' +
-        c.sources.length + ' 个来源 ｜ 优先级 ' + c.priority + ' ｜ 价值分 ' + c.score.toFixed(1);
+      el('dSub').textContent = c.func + ' ｜ ' + c.industry + ' ｜ ' + c.size + ' ' + T('条机会记录') + ' ｜ ' +
+        c.sources.length + ' ' + T('个来源') + ' ｜ ' + T('优先级') + ' ' + c.priority + ' ｜ ' + T('价值分') + ' ' + c.score.toFixed(1);
       const dims = [
-        ['多源指向度', c.dims.src, ''],
-        ['记录规模', c.dims.size, ' g'],
-        ['商业信号', c.dims.biz, ' o'],
+        [T('多源指向度'), c.dims.src, ''],
+        [T('记录规模'), c.dims.size, ' g'],
+        [T('商业信号'), c.dims.biz, ' o'],
       ].map((d) => '<div class="dim"><div class="row"><span>' + d[0] + '</span><b>' + d[1].toFixed(1) +
         '/100</b></div><div class="track"><div class="fill' + d[2] + '" style="width:' + Math.max(2, Math.min(100, d[1])) + '%"></div></div></div>').join('');
 
@@ -293,18 +315,18 @@
         '</td><td style="text-align:right">' + fmt(m.heat) + '</td></tr>').join('');
 
       el('dBody').innerHTML =
-        '<div class="sec-t">价值评分（权重 0.35 / 0.35 / 0.30）</div>' + dims +
-        '<div class="sec-t">来源覆盖</div><div>' + src + '</div>' +
-        '<div class="sec-t">证据记录（按热度取前 10 条）</div>' +
-        '<table class="mini-table"><thead><tr><th style="width:92px">编号</th><th>标题</th>' +
-        '<th style="width:80px">来源</th><th style="width:56px">热度</th></tr></thead><tbody>' + ev + '</tbody></table>' +
-        '<div class="sec-t">评分解释</div>' +
+        '<div class="sec-t">' + T('价值评分') + '（0.293 / 0.5065 / 0.2005）</div>' + dims +
+        '<div class="sec-t">' + T('来源覆盖') + '</div><div>' + src + '</div>' +
+        '<div class="sec-t">' + T('证据记录') + '（' + T('按热度取前 10 条') + '）</div>' +
+        '<table class="mini-table"><thead><tr><th style="width:92px">' + T('编号') + '</th><th>' + T('标题') + '</th>' +
+        '<th style="width:80px">' + T('来源') + '</th><th style="width:56px">' + T('热度') + '</th></tr></thead><tbody>' + ev + '</tbody></table>' +
+        '<div class="sec-t">' + T('评分解释') + '</div>' +
         '<p style="font-size:12px;color:#5b6b7d;line-height:1.8">' +
-        '多源指向度 = 100 × min(1, 来源数/14)：覆盖来源种类越多，需求越可信；<br/>' +
-        '记录规模 = 100 × min(1, 簇内记录数/100)：固定基准，跨批可比；<br/>' +
-        '商业信号 = 0.7×生均互动热度 + 0.3×需求置信度（置信度经金标 isotonic 校准）。</p>';
+        T('多源指向度 = 100 × min(1, 来源数/14)：覆盖来源种类越多，需求越可信；') + '<br/>' +
+        T('记录规模 = 100 × min(1, 簇内记录数/100)：固定基准，跨批可比；') + '<br/>' +
+        T('商业信号 = 0.6×生均互动热度 + 0.4×需求置信度。') + '</p>';
       el('drawer').classList.add('open');
-    } catch (e) { toast('加载详情失败：' + e.message); }
+    } catch (e) { toast(T('加载详情失败：') + e.message); }
   }
   function closeDrawer() { el('drawer').classList.remove('open'); }
   el('dClose').addEventListener('click', closeDrawer);
@@ -313,8 +335,8 @@
     if (!state.current) return;
     try {
       await api('/api/select', { method: 'POST', body: JSON.stringify({ cid: state.current.cid }) });
-      toast('已选取「' + state.current.cid + '」进入备选');
-    } catch (e) { toast('选取失败：' + e.message); }
+      toast(TF('已选取「{c}」进入备选', { c: state.current.cid }));
+    } catch (e) { toast(T('选取失败：') + e.message); }
   });
 
   el('dGen').addEventListener('click', async () => {
@@ -324,21 +346,21 @@
 
   /* ---------------- 生成策划案 ---------------- */
   async function generate(cid) {
-    toast('正在生成立项策划案…（' + (state.settings.provider === 'template' ? '离线模板' : '模型调用') + '）', 60000);
+    toast(T('正在生成立项策划案…') + '（' + (state.settings.provider === 'template' ? T('离线模板') : T('模型调用')) + '）', 60000);
     try {
       const r = await api('/api/proposal', { method: 'POST', body: JSON.stringify({ cid: cid }) });
       showProposal(r);
-      toast('生成完成：' + r.chars + ' 字 · ' + (r.mode === 'llm' ? r.model : '离线模板'), 3200);
+      toast(T('生成完成：') + r.chars + ' ' + T('字数') + ' · ' + (r.mode === 'llm' ? r.model : T('离线模板')), 3200);
       return r;
     } catch (e) {
-      toast('生成失败：' + e.message, 4000);
+      toast(T('生成失败：') + e.message, 4000);
       return null;
     }
   }
 
   function showProposal(p) {
     state.proposal = p;
-    el('mTitle').textContent = '立项策划案 · ' + p.cid;
+    el('mTitle').textContent = T('立项策划案') + ' · ' + p.cid;
     el('mBody').innerHTML = mdToHtml(p.markdown);
     el('modal').classList.add('open');
   }
@@ -358,7 +380,7 @@
       const r = await generate(cid);
       if (r) ok += 1;
     }
-    toast('批量完成：成功 ' + ok + '/' + ids.length + ' 份，已存入策划案库', 3500);
+    toast(TF('批量完成：成功 {a}/{b} 份，已存入策划案库', { a: ok, b: ids.length }), 3500);
     showPage('library');
   });
 
@@ -366,7 +388,7 @@
     try {
       const p = await api('/api/proposals/' + id);
       showProposal(p);
-    } catch (err) { toast('预览失败：' + err.message); }
+    } catch (err) { toast(T('预览失败：') + err.message); }
   }
 
   /* ---------------- 策划案库 ---------------- */
@@ -375,20 +397,21 @@
       const data = await api('/api/proposals');
       const tb = el('tblBodyLib');
       tb.innerHTML = '';
-      el('libCount').textContent = '共 ' + data.items.length + ' 份';
+      el('libCount').textContent = TF('共 {n} 份', { n: data.items.length });
       if (!data.items.length) {
-        tb.innerHTML = '<tr><td colspan="9" class="empty">暂无策划案，请到「机会选取」生成</td></tr>';
+        tb.innerHTML = '<tr><td colspan="9" class="empty">' + T('暂无策划案，请到「机会选取」生成') + '</td></tr>';
         return;
       }
       data.items.forEach((p) => {
         const tr = document.createElement('tr');
+        const modeLabel = p.mode === 'llm' ? T('模型生成') : (p.mode === 'template-fallback' ? T('模板兜底') : T('离线模板'));
         tr.innerHTML =
           '<td>' + p.id + '</td><td><b>' + p.cid + '</b></td><td>' + esc(p.cluster_name) + '</td>' +
-          '<td><span class="tag">' + (p.mode === 'llm' ? '模型生成' : (p.mode === 'template-fallback' ? '模板兜底' : '离线模板')) + '</span></td>' +
-          '<td style="font-size:11.5px;color:#6b7c90">' + esc(p.model) + '</td>' +
+          '<td><span class="tag">' + modeLabel + '</span></td>' +
+          '<td style="font-size:11px;color:#6b7c90">' + esc(p.model) + '</td>' +
           '<td>' + fmt(p.chars) + '</td><td>' + fmt(p.tokens) + '</td>' +
-          '<td style="font-size:11.5px;color:#6b7c90">' + p.created_at + '</td>' +
-          '<td><button class="btn mini ghost" data-act="view" data-id="' + p.id + '">预览</button> ' +
+          '<td style="font-size:11px;color:#6b7c90">' + p.created_at + '</td>' +
+          '<td><button class="btn mini ghost" data-act="view" data-id="' + p.id + '">' + T('预览') + '</button> ' +
           '<button class="btn mini ghost" data-act="md" data-id="' + p.id + '">MD</button> ' +
           '<button class="btn mini ghost" data-act="docx" data-id="' + p.id + '">Word</button></td>';
         tb.appendChild(tr);
@@ -404,7 +427,7 @@
           openProposalById(id);
         });
       });
-    } catch (e) { toast('加载策划案库失败：' + e.message); }
+    } catch (e) { toast(T('加载策划案库失败：') + e.message); }
   }
   el('btnRefreshLib').addEventListener('click', loadLibrary);
 
@@ -414,7 +437,8 @@
     el('sBase').value = s.base_url || '';
     el('sModel').value = s.model || '';
     el('sKey').value = '';
-    el('sKey').placeholder = s.api_key_set ? ('已配置：' + s.api_key + '（留空保持）') : '未配置';
+    el('sKey').placeholder = s.api_key_set
+      ? (T('已配置：') + s.api_key + T('（留空保持）')) : T('未配置');
     el('sTemp').value = s.temperature || '0.4';
     el('sMaxTok').value = s.max_tokens || '2000';
     el('sTimeout').value = s.timeout || '60';
@@ -436,12 +460,12 @@
       state.settings = r.settings;
       fillSettings(r.settings);
       renderOverview();
-      toast('配置已保存（仅存于本机 SQLite）');
-    } catch (e) { toast('保存失败：' + e.message, 3500); }
+      toast(T('配置已保存（仅存于本机 SQLite）'));
+    } catch (e) { toast(T('保存失败：') + e.message, 3500); }
   });
 
   el('btnTest').addEventListener('click', async () => {
-    el('testResult').textContent = '测试中…';
+    el('testResult').textContent = T('测试中…');
     el('testResult').style.color = '#6b7c90';
     try {
       const r = await api('/api/test', { method: 'POST', body: '{}' });
@@ -451,6 +475,17 @@
       el('testResult').textContent = '✗ ' + e.message;
       el('testResult').style.color = '#c0504d';
     }
+  });
+
+  /* ---------------- 语言切换：重绘动态内容 ---------------- */
+  window.addEventListener('i18n:change', () => {
+    if (state.me) applyMe(state.me);
+    if (state.meta) renderOverview();
+    if (state.filters) renderTable(state.clusters);
+    if (state.settings) fillSettings(state.settings);
+    el('crumb').textContent = T(PAGES[currentPage] || currentPage);
+    if (currentPage === 'library') loadLibrary();
+    if (currentPage === 'overview') { disposeCharts(); initCharts(); setTimeout(resizeCharts, 80); }
   });
 
   /* ---------------- 启动 ---------------- */
@@ -476,7 +511,7 @@
       renderOverview();
       renderTable(state.clusters);
       fillSettings(b.settings);
-      el('statusPill').textContent = h.ok ? '服务正常' : '服务异常';
+      el('statusPill').textContent = h.ok ? T('服务正常') : T('服务异常');
       el('statusPill').className = 'pill ' + (h.ok ? 'ok' : 'warn');
       initCharts();
       const raw = (location.hash || '').replace('#', '');
@@ -491,9 +526,9 @@
         }, 150);
       }
     } catch (e) {
-      el('statusPill').textContent = '连接失败';
+      el('statusPill').textContent = T('连接失败');
       el('statusPill').className = 'pill warn';
-      toast('初始化失败：' + e.message, 5000);
+      toast(T('初始化失败：') + e.message, 5000);
     }
   }
 

@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>智掘 AI Discovery</title>
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+<script src="{{ url_for('static', filename='echarts.min.js') }}"></script>
+<script src="{{ url_for('static', filename='i18n.js') }}"></script>
+</head>
+<body>
+
+<aside class="side">
+  <div class="brand">
+    <div class="mark">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="2.2"/><ellipse cx="12" cy="12" rx="9.5" ry="4.2" transform="rotate(-28 12 12)"/>
+        <ellipse cx="12" cy="12" rx="9.5" ry="4.2" transform="rotate(38 12 12)"/>
+      </svg>
+    </div>
+    <div class="brand-text"><h1 data-i18n>智掘 AI Discovery</h1><p>DISCOVER · EVALUATE · DECIDE</p></div>
+  </div>
+  <nav class="nav">
+    <div class="nav-label" data-i18n>分析工作台</div>
+    <a data-page="overview" class="active" data-i18n-title="概览看板" title="概览看板"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg><span data-i18n>概览看板</span></a>
+    <a data-page="insight" data-i18n-title="数据分析" title="数据分析"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 15l4-5 3 3 5-7"/></svg><span data-i18n>数据分析</span></a>
+    <a data-page="batch" data-i18n-title="批次分析" title="批次分析"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v6c0 1.7 3.6 3 8 3s8-1.3 8-3V5"/><path d="M4 11v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6"/></svg><span data-i18n>批次分析</span></a>
+    <a data-page="new" data-i18n-title="需求发起" title="需求发起"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/><path d="M11 8v6M8 11h6"/></svg><span data-i18n>需求发起</span></a>
+    <div class="nav-label" data-i18n>决策支持</div>
+    <a data-page="select" data-i18n-title="机会选取" title="机会选取"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg><span data-i18n>机会选取</span></a>
+    <a data-page="library" data-i18n-title="策划案库" title="策划案库"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg><span data-i18n>策划案库</span></a>
+    <a data-page="ask" data-i18n-title="智能问答" title="智能问答"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><path d="M8 9h8M8 13h5"/></svg><span data-i18n>智能问答</span></a>
+    <div class="nav-label" data-i18n>系统</div>
+    <a data-page="settings" data-i18n-title="系统设置" title="系统设置"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.88l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.88-.34 1.7 1.7 0 0 0-1 1.55V21a2 2 0 1 1-4 0v-.09a1.7 1.7 0 0 0-1.1-1.55 1.7 1.7 0 0 0-1.88.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-1.55-1H3a2 2 0 1 1 0-4h.09A1.7 1.7 0 0 0 4.6 9a1.7 1.7 0 0 0-.34-1.88l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.7 1.7 0 0 0 9 4.6a1.7 1.7 0 0 0 1-1.55V3a2 2 0 1 1 4 0v.09a1.7 1.7 0 0 0 1 1.55 1.7 1.7 0 0 0 1.88-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.7 1.7 0 0 0 19.4 9v0a1.7 1.7 0 0 0 1.55 1H21a2 2 0 1 1 0 4h-.09a1.7 1.7 0 0 0-1.51 1z"/></svg><span data-i18n>系统设置</span></a>
+  </nav>
+  <div class="side-foot">
+    <span data-i18n>需求驱动 · 一次需求一批次</span><br>
+    <b>v5</b> · 4322 <span data-i18n>条</span> / 55 <span data-i18n>簇</span><br>
+    <span data-i18n>结果呈现与决策支持</span>
+  </div>
+</aside>
+
+<main>
+  <header class="topbar">
+    <button class="icon-btn" id="btnNavToggle" data-i18n-title="收起 / 展开侧栏" title="收起 / 展开侧栏">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+    </button>
+    <div class="crumb" id="crumb" data-i18n>概览看板</div>
+    <div class="spacer"></div>
+    <div class="lang-switch" role="group" aria-label="Language">
+      <button data-lang="zh" class="on">中</button><button data-lang="en">EN</button>
+    </div>
+    <span class="pill" id="modePill" data-i18n>模式加载中</span>
+    <span class="pill ok" id="statusPill" data-i18n>服务正常</span>
+    <span class="pill user" id="userPill" data-i18n-title="当前登录身份" title="当前登录身份" data-i18n>未登录</span>
+    <button class="btn-top" id="btnLogout" data-i18n>退出</button>
+  </header>
+
+  <div class="content">
+
+    <!-- ============ 需求发起 ============ -->
+    <section class="page hidden" id="page-new">
+      <div class="page-head">
+        <div class="ph-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/><path d="M11 8v6M8 11h6"/></svg></div>
+        <div><h2 data-i18n>需求发起</h2><p data-i18n>以需求为驱动发起一次独立批次，自动完成采集、清洗、去重、机会判别、主题聚类与价值评估全链路。</p></div>
+      </div>
+      <div class="card">
+        <div class="card-head"><h2 data-i18n>发起一次需求</h2><span class="hint" data-i18n>一次需求 = 一个独立批次：采集 → 清洗 → 去重 → 机会判别 → 主题聚类 → 价值评估</span><button class="help-btn" data-help="req-form" data-i18n-title="使用说明" title="使用说明">?</button></div>
+        <div class="form">
+          <div class="row">
+            <label data-i18n>需求关键词</label>
+            <input id="rqQuery" data-i18n-ph="例如：AI 编程助手 代码生成；或：医疗影像辅助诊断" placeholder="例如：AI 编程助手 代码生成；或：医疗影像辅助诊断">
+          </div>
+          <div class="row">
+            <label data-i18n>采集来源</label>
+            <div class="chk-group" id="rqSources" data-i18n>加载中…</div>
+          </div>
+          <div class="grid">
+            <div class="row"><label data-i18n>目标条数</label><input id="rqTarget" type="number" value="600" min="50" max="2000"></div>
+            <div class="row"><label data-i18n>备注（写入批次报告）</label><input id="rqNote" data-i18n-ph="选填" placeholder="选填"></div>
+          </div>
+          <div class="actions">
+            <button class="btn primary" id="btnRunReq" data-i18n>发起采集与分析</button>
+            <span class="count" id="rqHint" style="margin-left:0">—</span>
+          </div>
+        </div>
+        <div class="notice blue" style="margin-top:12px" data-i18n-key="notice.requirement"></div>
+      </div>
+
+      <div class="card" style="margin-top:14px">
+        <div class="card-head"><h2 data-i18n>批次列表</h2><span class="hint" data-i18n>每个批次独立采集、独立聚类、独立评估，结果互不影响</span><button class="help-btn" data-help="batch-list" data-i18n-title="使用说明" title="使用说明">?</button></div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr>
+              <th style="width:66px" data-i18n>批次</th><th data-i18n>需求</th><th style="width:150px" data-i18n>来源</th>
+              <th style="width:64px" data-i18n>记录</th><th style="width:64px" data-i18n>机会</th><th style="width:50px" data-i18n>簇</th>
+              <th style="width:80px" data-i18n>状态</th><th style="width:70px" data-i18n>耗时</th><th style="width:130px" data-i18n>操作</th>
+            </tr></thead>
+            <tbody id="tblBatches"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ 批次分析 ============ -->
+    <section class="page hidden" id="page-batch">
+      <div class="page-head">
+        <div class="ph-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v6c0 1.7 3.6 3 8 3s8-1.3 8-3V5"/><path d="M4 11v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6"/></svg></div>
+        <div><h2 data-i18n>批次分析</h2><p data-i18n>逐批次独立计数与聚类，查看簇价值排序、证据链与原始记录溯源。</p></div>
+      </div>
+      <div class="toolbar">
+        <label class="tb-label" data-i18n>选择批次</label>
+        <select id="bSelBatch" style="min-width:240px"><option value="">— <span data-i18n>请选择批次</span> —</option></select>
+        <button class="btn ghost" id="btnBRefreshSel" data-i18n>刷新列表</button>
+        <span class="count" id="bSelHint" style="margin-left:0" data-i18n>正在加载批次…</span>
+      </div>
+      <div class="notice blue" id="bNotice" data-i18n-key="notice.batchSelect"></div>
+      <div class="kpis">
+        <div class="kpi"><div class="lab" data-i18n>本批次记录</div><div class="val" id="bKpiRecords">—</div><div class="note" data-i18n>采集清洗去重后</div></div>
+        <div class="kpi"><div class="lab" data-i18n>AI 应用机会</div><div class="val" id="bKpiOpps">—</div><div class="note" id="bKpiOppsNote" data-i18n>本批次内判别</div></div>
+        <div class="kpi"><div class="lab" data-i18n>机会主题簇</div><div class="val" id="bKpiClusters">—</div><div class="note" data-i18n>本批次内聚类</div></div>
+        <div class="kpi"><div class="lab" data-i18n>最高价值主题簇</div><div class="val" id="bKpiTop">—</div><div class="note" id="bKpiTopNote" data-i18n>本批次内排序</div></div>
+      </div>
+
+      <div class="grid2">
+        <div class="card">
+          <div class="card-head"><h2 data-i18n>本批次转化占比</h2><span class="hint" data-i18n>本批次独立计数 · 环形视图</span><button class="help-btn" data-help="b-funnel" data-i18n-title="使用说明" title="使用说明">?</button></div>
+          <div class="chart" id="bChartFunnel"></div>
+        </div>
+        <div class="card">
+          <div class="card-head"><h2 data-i18n>主题簇价值排序</h2><span class="hint" data-i18n>仅在本批次内可比</span><button class="help-btn" data-help="b-rank" data-i18n-title="使用说明" title="使用说明">?</button></div>
+          <div class="chart" id="bChartRank"></div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:14px">
+        <div class="card-head"><h2 data-i18n>机会主题簇</h2><span class="hint" data-i18n>点击行查看证据链并生成策划案</span><button class="help-btn" data-help="b-clusters" data-i18n-title="使用说明" title="使用说明">?</button></div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr>
+              <th style="width:56px" data-i18n>簇号</th><th data-i18n>主题簇名称</th><th style="width:100px" data-i18n>功能类别</th>
+              <th style="width:84px" data-i18n>行业</th><th style="width:64px" data-i18n>记录数</th><th style="width:64px" data-i18n>来源数</th>
+              <th style="width:72px" data-i18n>价值分</th><th style="width:64px" data-i18n>优先级</th>
+            </tr></thead>
+            <tbody id="bTblClusters"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="card hidden" id="bDetailCard" style="margin-top:14px">
+        <div class="card-head"><h2 id="bDetailTitle">—</h2><span class="hint" id="bDetailHint"></span></div>
+        <div id="bDetail"></div>
+      </div>
+
+      <div class="card" style="margin-top:14px">
+        <div class="card-head"><h2 data-i18n>原始记录检索（逐条溯源）</h2><span class="hint" data-i18n>编号 → 正文快照 → 原始链接，可逐条核对</span><button class="help-btn" data-help="b-records" data-i18n-title="使用说明" title="使用说明">?</button></div>
+        <div class="toolbar">
+          <input id="bQ" data-i18n-ph="按标题 / 正文 / 来源搜索" placeholder="按标题 / 正文 / 来源搜索">
+          <select id="bOnlyOpp"><option value="0" data-i18n>全部记录</option><option value="1" data-i18n>只看机会记录</option></select>
+          <button class="btn ghost" id="btnBQ" data-i18n>检索</button>
+          <span class="count" id="bQCount">—</span>
+          <div class="spacer"></div>
+          <button class="btn ghost" id="btnBReport" data-i18n>下载批次报告</button>
+        </div>
+        <div class="table-wrap" style="max-height:360px">
+          <table>
+            <thead><tr>
+              <th style="width:112px" data-i18n>编号</th><th data-i18n>标题</th><th style="width:104px" data-i18n>来源</th>
+              <th style="width:90px" data-i18n>时间</th><th style="width:74px" data-i18n>是否机会</th>
+              <th style="width:72px" data-i18n>置信度</th><th style="width:110px" data-i18n>溯源</th>
+            </tr></thead>
+            <tbody id="bTblRecords"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ 概览 ============ -->
+    <section class="page" id="page-overview">
+      <div class="page-head">
+        <div class="ph-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg></div>
+        <div><h2 data-i18n>概览看板</h2><p data-i18n>任务一至任务四核心结果一览：数据规模、机会分布、主题簇价值与三维度贡献。</p></div>
+      </div>
+      <div class="kpis">
+        <div class="kpi"><div class="lab" data-i18n>采集清洗去重</div><div class="val" id="kpiRecords">—</div><div class="note" data-i18n>任务一 result1.csv</div></div>
+        <div class="kpi"><div class="lab" data-i18n>AI 应用机会</div><div class="val" id="kpiOpps">—</div><div class="note" id="kpiOppsNote" data-i18n>任务二识别</div></div>
+        <div class="kpi"><div class="lab" data-i18n>机会主题簇</div><div class="val" id="kpiClusters">—</div><div class="note" data-i18n>任务三聚类</div></div>
+        <div class="kpi"><div class="lab" data-i18n>最高价值主题簇</div><div class="val" id="kpiTop">—</div><div class="note" id="kpiTopNote" data-i18n>任务四评分</div></div>
+      </div>
+
+      <div class="grid3">
+        <div class="card">
+          <div class="card-head"><h2 data-i18n>主题簇价值排序</h2><span class="hint" data-i18n>窗口越大、来源越多，可行性越高</span><button class="help-btn" data-help="over-rank" data-i18n-title="使用说明" title="使用说明">?</button></div>
+          <div class="chart" id="chartRank"></div>
+        </div>
+        <div class="card">
+          <div class="card-head"><h2 data-i18n>价值分三维度贡献</h2><span class="hint" data-i18n>多源指向 / 记录规模 / 商业信号</span><button class="help-btn" data-help="over-contrib" data-i18n-title="使用说明" title="使用说明">?</button></div>
+          <div class="chart" id="chartContrib"></div>
+        </div>
+        <div class="card">
+          <div class="card-head"><h2 data-i18n>主题簇 × 来源覆盖</h2><span class="hint" data-i18n>多源共同指向 = 需求更可信</span><button class="help-btn" data-help="over-heat" data-i18n-title="使用说明" title="使用说明">?</button></div>
+          <div class="chart" id="chartHeat"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ 机会选取 ============ -->
+    <section class="page hidden" id="page-select">
+      <div class="page-head">
+        <div class="ph-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></div>
+        <div><h2 data-i18n>机会选取</h2><p data-i18n>依据簇机会价值分与优先级筛选高价值方向，可勾选并批量生成立项策划案。</p></div>
+      </div>
+      <div class="card" style="margin-bottom:14px">
+        <div class="card-head"><h2 data-i18n>筛选与勾选</h2><button class="help-btn" data-help="sel-table" data-i18n-title="使用说明" title="使用说明">?</button></div>
+      </div>
+      <div class="toolbar">
+        <input type="search" id="qInput" data-i18n-ph="搜索主题簇编号 / 名称 / 功能类别 / 行业" placeholder="搜索主题簇编号 / 名称 / 功能类别 / 行业">
+        <select id="fIndustry"><option value="" data-i18n>全部行业</option></select>
+        <select id="fFunc"><option value="" data-i18n>全部功能</option></select>
+        <select id="fSrc">
+          <option value="0" data-i18n>来源数不限</option>
+          <option value="2" data-i18n>≥ 2 个来源</option>
+          <option value="3" data-i18n>≥ 3 个来源</option>
+          <option value="4" data-i18n>≥ 4 个来源</option>
+        </select>
+        <button class="btn ghost" id="btnClearSel" data-i18n>清空勾选</button>
+        <span class="count" id="tblCount">—</span>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th style="width:34px"></th><th style="width:56px" data-i18n>簇号</th><th data-i18n>主题簇名称</th>
+              <th style="width:104px" data-i18n>功能类别</th><th style="width:90px" data-i18n>行业</th>
+              <th style="width:64px" data-i18n>记录数</th><th style="width:64px" data-i18n>来源数</th>
+              <th style="width:126px" data-i18n>价值分</th><th style="width:58px" data-i18n>优先级</th>
+            </tr>
+          </thead>
+          <tbody id="tblBodySelect"></tbody>
+        </table>
+      </div>
+
+      <div class="toolbar" style="margin-top:12px">
+        <span class="count" id="selCount" style="margin-left:0" data-i18n>已勾选 0 个方向</span>
+        <div class="spacer"></div>
+        <button class="btn primary" id="btnGenBatch" disabled data-i18n>批量生成立项策划案</button>
+      </div>
+    </section>
+
+    <!-- ============ 策划案库 ============ -->
+    <section class="page hidden" id="page-library">
+      <div class="page-head">
+        <div class="ph-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></div>
+        <div><h2 data-i18n>策划案库</h2><p data-i18n>已生成的立项策划案，可在线预览并导出为 Word / Markdown 文档。</p></div>
+      </div>
+      <div class="card" style="margin-bottom:14px">
+        <div class="card-head"><h2 data-i18n>已生成策划案</h2><button class="help-btn" data-help="lib-table" data-i18n-title="使用说明" title="使用说明">?</button></div>
+      </div>
+      <div class="toolbar">
+        <button class="btn ghost" id="btnRefreshLib" data-i18n>刷新列表</button>
+        <span class="count" id="libCount">—</span>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th style="width:56px" data-i18n>编号</th><th style="width:56px" data-i18n>簇号</th><th data-i18n>主题簇名称</th>
+              <th style="width:100px" data-i18n>生成方式</th><th style="width:150px" data-i18n>模型</th>
+              <th style="width:62px" data-i18n>字数</th><th style="width:66px" data-i18n>Token</th>
+              <th style="width:136px" data-i18n>生成时间</th><th style="width:180px" data-i18n>操作</th>
+            </tr>
+          </thead>
+          <tbody id="tblBodyLib"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ============ 数据分析（占比看板） ============ -->
+    <section class="page hidden" id="page-insight">
+      <div class="page-head">
+        <div class="ph-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 15l4-5 3 3 5-7"/></svg></div>
+        <div><h2 data-i18n>数据分析</h2><p data-i18n>基于任务一至任务四真实结果的统计视图，彩色桑基流向与环形占比，所有数据可溯源。</p></div>
+      </div>
+
+      <div class="card card-hero">
+        <div class="card-head"><h2 data-i18n>全流程流向 · 彩色桑基图</h2><span class="hint" data-i18n>采集 → 机会 / 非机会 → 各主题簇，流向宽度即规模，颜色区分主题</span><button class="help-btn" data-help="ins-sankey" data-i18n-title="使用说明" title="使用说明">?</button></div>
+        <div class="chart" id="insFunnel" style="height:300px"></div>
+      </div>
+
+      <div class="grid3" style="margin-top:14px">
+        <div class="card">
+          <div class="card-head"><h2 data-i18n>转化进度 · 环形占比</h2><span class="hint" data-i18n>机会率 / 簇覆盖率</span><button class="help-btn" data-help="ins-rate" data-i18n-title="使用说明" title="使用说明">?</button></div>
+          <div class="chart" id="insFunnelRate" style="height:230px"></div>
+        </div>
+        <div class="card">
+          <div class="card-head"><h2 data-i18n>来源构成占比</h2><span class="hint" data-i18n>各公开渠道记录数</span><button class="help-btn" data-help="ins-source" data-i18n-title="使用说明" title="使用说明">?</button></div>
+          <div class="chart" id="insSourcePie" style="height:230px"></div>
+        </div>
+        <div class="card">
+          <div class="card-head"><h2 data-i18n>功能类别占比</h2><span class="hint" data-i18n>按机会记录数</span><button class="help-btn" data-help="ins-func" data-i18n-title="使用说明" title="使用说明">?</button></div>
+          <div class="chart" id="insFuncPie" style="height:230px"></div>
+        </div>
+      </div>
+
+      <div class="grid3" style="margin-top:14px">
+        <div class="card">
+          <div class="card-head"><h2 data-i18n>所属行业占比</h2><span class="hint" data-i18n>按机会记录数</span><button class="help-btn" data-help="ins-ind" data-i18n-title="使用说明" title="使用说明">?</button></div>
+          <div class="chart" id="insIndPie" style="height:230px"></div>
+        </div>
+        <div class="card">
+          <div class="card-head"><h2 data-i18n>置信度分布</h2><span class="hint" data-i18n>经金标准 isotonic 校准</span><button class="help-btn" data-help="ins-conf" data-i18n-title="使用说明" title="使用说明">?</button></div>
+          <div class="chart" id="insConf" style="height:230px"></div>
+        </div>
+        <div class="card">
+          <div class="card-head"><h2 data-i18n>各批次机会数</h2><span class="hint" data-i18n>B01–B08 批次独立</span><button class="help-btn" data-help="ins-batch" data-i18n-title="使用说明" title="使用说明">?</button></div>
+          <div class="chart" id="insBatchBar" style="height:230px"></div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:14px">
+        <div class="card-head"><h2 data-i18n>Top10 主题簇机会价值分</h2><span class="hint" data-i18n>固定基准 + 熵权法合成，优先级排序依据</span><button class="help-btn" data-help="ins-value" data-i18n-title="使用说明" title="使用说明">?</button></div>
+        <div class="chart" id="insValueBar" style="height:250px"></div>
+      </div>
+    </section>
+
+    <!-- ============ 智能问答 ============ -->
+    <section class="page hidden" id="page-ask">
+      <div class="page-head">
+        <div class="ph-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><path d="M8 9h8M8 13h5"/></svg></div>
+        <div><h2 data-i18n>智能问答</h2><p data-i18n>基于真实主题簇与证据的检索增强问答，回答带溯源，无 API Key 时离线可用。</p></div>
+      </div>
+      <div class="card">
+        <div class="card-head"><h2 data-i18n>智能问答咨询</h2><span class="hint" data-i18n>基于真实主题簇与证据的检索增强问答，无 API Key 时离线可用</span><button class="help-btn" data-help="ask-box" data-i18n-title="使用说明" title="使用说明">?</button></div>
+        <div class="ask-quick">
+          <span class="hint" data-i18n>试试：</span>
+          <button class="btn ghost mini ask-q" data-i18n>哪些主题簇价值最高？</button>
+          <button class="btn ghost mini ask-q" data-i18n>医疗相关的机会有哪些？</button>
+          <button class="btn ghost mini ask-q" data-i18n>智能体编排方向的证据</button>
+        </div>
+        <div class="ask-box">
+          <input id="askInput" data-i18n-ph="输入你的问题，例如：教育行业有哪些高价值机会？" placeholder="输入你的问题，例如：教育行业有哪些高价值机会？">
+          <button class="btn primary" id="btnAsk" data-i18n>提问</button>
+        </div>
+        <div class="ask-answer" id="askAnswer"><span class="hint" data-i18n>提问后将在此显示带溯源的回答。</span></div>
+      </div>
+    </section>
+
+    <!-- ============ 系统设置 ============ -->
+    <section class="page hidden" id="page-settings">
+      <div class="page-head">
+        <div class="ph-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.88l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.88-.34 1.7 1.7 0 0 0-1 1.55V21a2 2 0 1 1-4 0v-.09a1.7 1.7 0 0 0-1.1-1.55 1.7 1.7 0 0 0-1.88.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-1.55-1H3a2 2 0 1 1 0-4h.09A1.7 1.7 0 0 0 4.6 9a1.7 1.7 0 0 0-.34-1.88l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.7 1.7 0 0 0 9 4.6a1.7 1.7 0 0 0 1-1.55V3a2 2 0 1 1 4 0v.09a1.7 1.7 0 0 0 1 1.55 1.7 1.7 0 0 0 1.88-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.7 1.7 0 0 0 19.4 9v0a1.7 1.7 0 0 0 1.55 1H21a2 2 0 1 1 0 4h-.09a1.7 1.7 0 0 0-1.51 1z"/></svg></div>
+        <div><h2 data-i18n>系统设置</h2><p data-i18n>配置模型服务模式与角色权限，兼顾成本与运行开销。</p></div>
+      </div>
+      <div class="notice" id="roleNotice" data-i18n-key="notice.roleRequester"></div>
+
+      <div class="card" style="margin-bottom:14px">
+        <div class="card-head"><h2 data-i18n>模型服务配置</h2><button class="help-btn" data-help="set-form" data-i18n-title="使用说明" title="使用说明">?</button></div>
+        <div class="form">
+          <div class="row">
+            <label data-i18n>模型服务模式</label>
+            <select id="sProvider">
+              <option value="template" data-i18n>离线模板（默认，零 API 成本，无需联网）</option>
+              <option value="openai" data-i18n>OpenAI 兼容接口（硅基流动 / 智谱 / DeepSeek / 通义 / Moonshot）</option>
+              <option value="ollama" data-i18n>本地 Ollama（http://localhost:11434）</option>
+            </select>
+          </div>
+          <div class="row">
+            <label>接口地址 base_url</label>
+            <input id="sBase" placeholder="https://api.siliconflow.cn/v1">
+          </div>
+          <div class="grid">
+            <div class="row">
+              <label data-i18n>模型名称</label>
+              <input id="sModel" placeholder="Qwen/Qwen2.5-7B-Instruct">
+            </div>
+            <div class="row">
+              <label>API Key（<span data-i18n>仅存本机</span> SQLite）</label>
+              <input id="sKey" data-i18n-ph="留空则保持原值" placeholder="留空则保持原值">
+            </div>
+          </div>
+          <div class="grid3">
+            <div class="row"><label>温度 temperature</label><input id="sTemp" placeholder="0.4"></div>
+            <div class="row"><label>最大输出 max_tokens</label><input id="sMaxTok" placeholder="2000"></div>
+            <div class="row"><label data-i18n>超时 timeout（秒）</label><input id="sTimeout" placeholder="60"></div>
+          </div>
+          <div class="row"><div id="testResult" data-i18n>未测试</div></div>
+          <div class="actions">
+            <button class="btn ghost" id="btnTest" data-i18n>测试连通性</button>
+            <button class="btn primary" id="btnSave" data-i18n>保存配置</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="notice blue" data-i18n-key="notice.cost"></div>
+
+      <div class="card" style="margin-top:14px">
+        <div class="card-head"><h2 data-i18n>角色与数据可见范围</h2><button class="help-btn" data-help="set-roles" data-i18n-title="使用说明" title="使用说明">?</button></div>
+        <table class="mini-table">
+          <thead><tr><th style="width:110px" data-i18n>角色</th><th data-i18n>可用操作</th><th data-i18n>数据可见范围</th></tr></thead>
+          <tbody>
+            <tr><td data-i18n>需求发起者</td><td data-i18n>浏览看板、筛选、选取机会、生成并下载策划案</td><td data-i18n>主题簇与证据记录（脱敏后）</td></tr>
+            <tr><td data-i18n>决策者</td><td data-i18n>以上全部 + 修改模型配置、查看审计日志</td><td data-i18n>全部数据与系统配置</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+  </div>
+</main>
+
+<!-- 详情抽屉 -->
+<div id="drawer">
+  <div class="drawer-head">
+    <div><h3 id="dTitle">—</h3><div class="sub" id="dSub">—</div></div>
+    <button class="x" id="dClose" data-i18n-title="关闭" title="关闭">×</button>
+  </div>
+  <div class="drawer-body" id="dBody"></div>
+  <div class="drawer-foot">
+    <button class="btn ghost" id="dSelect" data-i18n>选取该方向</button>
+    <button class="btn primary" id="dGen" data-i18n>生成立项策划案</button>
+  </div>
+</div>
+
+<!-- 帮助说明弹窗 -->
+<div id="helpModal">
+  <div class="help-box">
+    <div class="help-head"><h3 id="hHelpTitle" data-i18n>使用说明</h3><button class="help-x" id="hHelpClose" data-i18n-title="关闭" title="关闭">×</button></div>
+    <div class="help-body" id="hHelpBody"></div>
+  </div>
+</div>
+
+<!-- 策划案预览 -->
+<div id="modal">
+  <div class="modal-box">
+    <div class="modal-head">
+      <h3 id="mTitle" data-i18n>立项策划案</h3>
+      <div class="tools">
+        <button class="btn mini ghost" id="mDownloadMd" data-i18n>下载 Markdown</button>
+        <button class="btn mini ghost" id="mDownloadDocx" data-i18n>下载 Word</button>
+        <button class="btn mini ghost" id="mClose" data-i18n>关闭</button>
+      </div>
+    </div>
+    <div class="modal-body" id="mBody"></div>
+  </div>
+</div>
+
+<!-- 批次策划案预览 -->
+<div id="bModal">
+  <div class="modal-box">
+    <div class="modal-head">
+      <h3 id="bmTitle" data-i18n>立项策划案</h3>
+      <div class="tools">
+        <a class="btn mini ghost" id="bmMd" href="#" target="_blank" data-i18n>下载 Markdown</a>
+        <a class="btn mini ghost" id="bmDocx" href="#" data-i18n>下载 Word</a>
+        <button class="btn mini ghost" id="bmClose" data-i18n>关闭</button>
+      </div>
+    </div>
+    <div class="modal-body" id="bmBody"></div>
+  </div>
+</div>
+
+<div id="toast"></div>
+<script src="{{ url_for('static', filename='app.js') }}"></script>
+<script src="{{ url_for('static', filename='batch.js') }}"></script>
+<script src="{{ url_for('static', filename='insight.js') }}"></script>
+</body>
+</html>

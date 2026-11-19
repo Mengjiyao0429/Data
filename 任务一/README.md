@@ -74,11 +74,11 @@
     │       ├── cleaner.py    # 文本清洗（HTML 实体解码、去噪、规范化）
     │       └── dedup.py      # MD5 + SimHash 去重
     ├── collect_demand_oriented.py  # 需求导向采集（当前口径主流程）
-    ├── build_dataset.py / build_dataset2.py  # 清洗、去重、编号与导出
-    ├── bulk_collect.py / collect_expand.py   # 翻页扩容采集
+    ├── build_dataset.py            # 清洗、去重、编号与导出
+    ├── collect_expand.py           # 翻页扩容采集
     ├── collect_ai_demand.py / merge_ai_demand.py  # 需求侧补采与入库
-    ├── run_task1.py / merge_task1.py / rebuild_batches.py
-    ├── sync_task1_outputs.py / rebuild_downstream.py
+    ├── run_task1.py                # 一键运行入口
+    ├── sync_task1_outputs.py / rebuild_downstream.py  # 同步下游
     ├── requirements.txt
     └── README.md
 ```

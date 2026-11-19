@@ -1,0 +1,70 @@
+{
+  "mode": "per_batch_independent",
+  "note": "每个采集批次独立聚类；簇编号批内独立（C1..Ck）；分数跨批不可直接比较",
+  "batches": {
+    "B01": {
+      "n": 338,
+      "clusters": 8,
+      "k": 8,
+      "silhouette": 0.0268,
+      "stability": 0.0569,
+      "vectors": 52293
+    },
+    "B02": {
+      "n": 334,
+      "clusters": 2,
+      "k": 2,
+      "silhouette": 0.0249,
+      "stability": 0.331,
+      "vectors": 51657
+    },
+    "B03": {
+      "n": 225,
+      "clusters": 10,
+      "k": 10,
+      "silhouette": 0.0237,
+      "stability": 0.0554,
+      "vectors": 34716
+    },
+    "B04": {
+      "n": 197,
+      "clusters": 9,
+      "k": 9,
+      "silhouette": 0.0173,
+      "stability": 0.0529,
+      "vectors": 31100
+    },
+    "B05": {
+      "n": 162,
+      "clusters": 4,
+      "k": 4,
+      "silhouette": 0.0311,
+      "stability": 0.0289,
+      "vectors": 24190
+    },
+    "B06": {
+      "n": 156,
+      "clusters": 10,
+      "k": 10,
+      "silhouette": 0.0238,
+      "stability": 0.1013,
+      "vectors": 24114
+    },
+    "B07": {
+      "n": 151,
+      "clusters": 4,
+      "k": 4,
+      "silhouette": 0.0143,
+      "stability": 0.0241,
+      "vectors": 23694
+    },
+    "B08": {
+      "n": 165,
+      "clusters": 8,
+      "k": 8,
+      "silhouette": 0.0336,
+      "stability": 0.0908,
+      "vectors": 23888
+    }
+  }
+}
