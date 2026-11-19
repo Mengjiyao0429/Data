@@ -115,7 +115,7 @@
                    axisTick: { show: false }, axisLine: { lineStyle: { color: '#dbe5ee' } } },
           series: [{ type: 'bar', data: vt.map((x, i) => ({
                       value: x.score,
-                      itemStyle: { color: i >= vt.length - 3 ? '#2E5C8A' : i >= vt.length - 6 ? '#4F81BD' : '#9DB6CC',
+                      itemStyle: { color: i >= vt.length - 3 ? '#1B7A4B' : i >= vt.length - 6 ? '#2E9D63' : '#7CC79B',
                                    borderRadius: [0, 4, 4, 0] } })),
                     barWidth: '58%',
                     label: { show: true, position: 'right', fontSize: 11, color: '#22354a', fontWeight: 600,

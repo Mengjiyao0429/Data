@@ -130,6 +130,9 @@ section.page{max-width:1500px;margin:0 auto}
   transition:transform .22s ease}
 .paper-figure:hover .fig-box img{transform:scale(1.06)}
 .paper-figure:hover .fig-box{border-color:var(--accent);box-shadow:0 4px 16px rgba(16,40,64,.09)}
+/* 单独整行的大图（价值哑铃图）：显示更高、更清楚 */
+.paper-figure .fig-box.fig-wide img{max-height:640px}
+.paper-figure .card-head h2{white-space:normal}
 .zoom-badge{margin-left:6px;font-size:10px;color:var(--accent);background:#e6f6f5;border:1px solid #cbe8e6;
   border-radius:10px;padding:2px 8px;white-space:nowrap;order:6;flex:0 0 auto}
 

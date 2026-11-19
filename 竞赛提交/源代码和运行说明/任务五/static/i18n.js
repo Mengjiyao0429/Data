@@ -193,6 +193,7 @@
     '任务一至任务四结果的统计视图与论文级图表：彩色桑基流向、类别分布、语义空间、权重敏感性与价值排名，点击任意图可放大。': 'Statistics and publication-quality figures from Tasks 1–4: Sankey flow, category distribution, semantic space, weight sensitivity and value ranking. Click to enlarge.',
     '论文级图表 · 结果深度分析': 'Publication figures · in-depth analysis',
     '机会类别分布 · 棒棒糖图': 'Opportunity categories · lollipop',
+    '机会类别分布': 'Opportunity categories',
     '智能体编排与推荐系统合计约四成': 'Agent orchestration + recommendation ≈ 40%',
     '功能类别与行业分布': 'Function & industry distribution',
     '16 类功能 / Top12 行业，全类别可辨': '16 functions / top-12 industries, all legible',
