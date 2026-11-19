@@ -177,7 +177,39 @@
     '初始化失败：': 'Initialization failed: ', '加载策划案库失败：': 'Failed to load proposal library: ',
     '共 {n} 个批次，{d} 个已完成': '{n} batches, {d} done', '（采集中会自动刷新）': ' (auto-refresh while running)',
     '发起': 'Started', '聚类 k=': 'clusters k=', '轮廓系数': 'silhouette',
-    '批次 <b>{b}</b> 正在采集与计算，页面会自动刷新（通常 20–90 秒）。': 'Batch <b>{b}</b> is collecting and computing; this page auto-refreshes (usually 20–90 s).'
+    '批次 <b>{b}</b> 正在采集与计算，页面会自动刷新（通常 20–90 秒）。': 'Batch <b>{b}</b> is collecting and computing; this page auto-refreshes (usually 20–90 s).',
+    /* 概览 / 数据分析：论文级图表 */
+    '点击放大': 'Click to zoom',
+    '任务一至任务四核心结果一览：数据规模、机会分布、主题簇价值与信息多元性。点击任意图可放大查看细节。': 'Core results from Tasks 1–4: data scale, opportunity distribution, cluster value and source diversity. Click any figure to enlarge.',
+    '主题簇价值排名 · 条形哑铃图': 'Cluster value ranking · bar & dumbbell',
+    'B02 推荐系统以 65.9 分居首，头部集中于推荐与智能体': 'B02 recommender leads at 65.9; top clusters concentrate in recommendation & agents',
+    '价值分三维度加权贡献': '3-dimension weighted value contribution',
+    '多源指向 × 记录规模 × 商业信号': 'Multi-source × record scale × business signal',
+    '信息来源多元构成': 'Diverse source composition',
+    '四大来源 × 八批次，多源交叉印证': '4 sources × 8 batches, cross-validated',
+    '任务一至任务四结果的统计视图与论文级图表：彩色桑基流向、类别分布、语义空间、权重敏感性与价值排名，点击任意图可放大。': 'Statistics and publication-quality figures from Tasks 1–4: Sankey flow, category distribution, semantic space, weight sensitivity and value ranking. Click to enlarge.',
+    '论文级图表 · 结果深度分析': 'Publication figures · in-depth analysis',
+    '机会类别分布 · 棒棒糖图': 'Opportunity categories · lollipop',
+    '智能体编排与推荐系统合计约四成': 'Agent orchestration + recommendation ≈ 40%',
+    '功能类别与行业分布': 'Function & industry distribution',
+    '16 类功能 / Top12 行业，全类别可辨': '16 functions / top-12 industries, all legible',
+    '来源构成 · 批次 × 来源': 'Source composition · batch × source',
+    '四大来源 × 八批次，信息多元可溯源': '4 sources × 8 batches, diverse & traceable',
+    '价值排名 · 条形哑铃图': 'Value ranking · bar & dumbbell',
+    '头部稳定，权重扰动下排名位移有限': 'Stable top ranks; limited shift under weight perturbation',
+    '聚类分布 · t-SNE': 'Cluster distribution · t-SNE',
+    '1728 条机会在语义空间连续分布': '1,728 opportunities form a continuous semantic space',
+    '语义空间散点': 'Semantic space scatter',
+    '按 55 个主题簇着色，颜色区分语义群': 'Colored by 55 clusters, distinguishing semantic groups',
+    '三维度加权贡献': '3-dimension weighted contribution',
+    '权重敏感性分析': 'Weight sensitivity analysis',
+    '基准权重附近排序稳定，极端纯多源时下降': 'Stable near baseline; drops under extreme multi-source weights',
+    '规则判别 · 混淆矩阵': 'Rule detection · confusion matrix',
+    '金标准 120 条 · Precision 1.000 / Recall 0.880': 'Gold set 120 · Precision 1.000 / Recall 0.880',
+    '簇规模与聚类质量': 'Cluster size & quality',
+    '55 簇规模分布 · 各批次轮廓系数 / ARI': '55-cluster sizes · per-batch silhouette / ARI',
+    '价值分类排序 · Top10 清爽版': 'Value ranking · Top 10 (clean)',
+    '左侧仅簇号、名称见悬停，标签间距重新排布': 'Only cluster IDs on the left; names on hover; labels respaced'
   };
 
   /* ---------------- 富文本通知块（含链接 / 代码） ---------------- */
@@ -273,6 +305,34 @@
     'ins-value': {
       zh: ['Top10 主题簇机会价值分', '<p>价值分最高的 10 个主题簇，采用固定基准归一化 + 熵权法合成，是「机会选取」优先级排序的依据。</p>'],
       en: ['Top 10 cluster value scores', '<p>The 10 highest-value clusters, scored with fixed-baseline normalization + entropy weighting; drives priority in Opportunity Selection.</p>']
+    },
+    'ins-value': {
+      zh: ['价值排名 · 条形哑铃图', '<p>左图为 55 个主题簇按机会价值分降序的<b>条形排名</b>（Top1 B02 推荐系统 65.9 分）；右图为<b>哑铃图</b>，对比基准权重与扰动方案下每个簇的排名位移。</p><p>绝大多数簇排名位移有限，说明价值排序对权重设定稳健；这也是「机会选取」优先级排序的依据。</p>'],
+      en: ['Value ranking · dumbbell', '<p>Left: <b>bar ranking</b> of 55 clusters by value score (top: B02 recommender, 65.9). Right: <b>dumbbell</b> comparing each cluster’s rank under baseline vs. perturbed weights.</p><p>Most clusters shift little, showing the ranking is robust to weight settings — the basis of Opportunity Selection priority.</p>']
+    },
+    'ins-tsne': {
+      zh: ['聚类分布 · t-SNE', '<p>将 1,728 条机会记录的 TF-IDF 文本经 LSA 降维后用 t-SNE 投影到二维。每个点按所属主题簇着色，形状区分来源。</p><p>点在语义空间呈连续分布、簇间边界模糊，说明主题是渐变的连续谱，而非彼此割裂的类别；系统不强行制造清晰边界。</p>'],
+      en: ['Cluster distribution · t-SNE', '<p>TF-IDF features of 1,728 opportunity records reduced by LSA then projected with t-SNE; each point is colored by its cluster and shaped by source.</p><p>Points form a continuous semantic space with fuzzy boundaries, indicating a spectrum of topics rather than sharply separated categories.</p>']
+    },
+    'ins-semantic': {
+      zh: ['语义空间散点', '<p>与 t-SNE 图互补的另一种语义投影（TF-IDF → LSA → PCA），按 55 个主题簇着色。颜色相同的点属于同一语义群。</p><p>用于直观检查聚类结果在语义空间中是否形成可分辨的群组，是任务三聚类有效性的可视化证据。</p>'],
+      en: ['Semantic space scatter', '<p>A complementary projection (TF-IDF → LSA → PCA) colored by 55 clusters; points of the same color belong to one semantic group.</p><p>It visually checks whether clusters form distinguishable groups in semantic space — evidence for Task 3 clustering validity.</p>']
+    },
+    'ins-contrib': {
+      zh: ['三维度加权贡献', '<p>55 个主题簇的机会价值分按三维拆解：<b>多源指向度、记录规模、商业信号</b>，每根柱的高度为加权后的贡献，总和即价值分。</p><p>可看出高分簇主要由哪个维度驱动，避免只看总分而忽略构成，是评分可解释性的核心图表。</p>'],
+      en: ['3-dimension weighted contribution', '<p>Value scores of 55 clusters decomposed into <b>multi-source, record scale and business signal</b>; each bar shows the weighted contribution, summing to the total.</p><p>It reveals which dimension drives high scores, making the scoring interpretable rather than a black-box total.</p>']
+    },
+    'ins-sens': {
+      zh: ['权重敏感性分析', '<p>四个子图检验价值排序对权重的稳健性：<b>权重网格热力图</b>（不同多源/规模权重下的 Spearman 相关）、Top5 重合度、单参数变化曲线与维度相关性热力图。</p><p>基准权重（多源 0.293 / 规模 0.5065 / 商业 0.2005）附近排名 Spearman 常高于 0.99；只有在极端「纯多源」设置下稳定性才明显下降。</p>'],
+      en: ['Weight sensitivity analysis', '<p>Four panels test ranking robustness: a <b>weight-grid heatmap</b> (Spearman across weights), Top-5 overlap, single-parameter curves and dimension correlations.</p><p>Near the baseline weights (0.293 / 0.5065 / 0.2005) Spearman is usually above 0.99; stability drops only under extreme "pure multi-source" settings.</p>']
+    },
+    'ins-confmat': {
+      zh: ['规则判别 · 混淆矩阵', '<p>在 120 条人工金标准上评估任务二的 AI 机会判别规则：TP 22 / FP 0 / FN 3 / TN 95，Precision 1.000、Recall 0.880、F1 0.936。</p><p>零误报意味着判为机会的记录可信；这是「规则阈值 0.60 是否合理」的量化依据。</p>'],
+      en: ['Rule detection · confusion matrix', '<p>Evaluation of the Task 2 detection rule on a 120-record gold set: TP 22 / FP 0 / FN 3 / TN 95; Precision 1.000, Recall 0.880, F1 0.936.</p><p>Zero false positives means flagged opportunities are credible — quantitative evidence for the 0.60 threshold.</p>']
+    },
+    'ins-quality': {
+      zh: ['簇规模与聚类质量', '<p>左图是 55 个主题簇的簇内记录数分布（呈长尾）；右图是各批次的轮廓系数与多子样本 ARI。</p><p>轮廓系数偏低与 t-SNE 中的连续分布一致，说明文本主题本身边界模糊；ARI 反映不同子样本间聚类的一致性。</p>'],
+      en: ['Cluster size & quality', '<p>Left: within-cluster sizes of 55 clusters (long-tailed). Right: per-batch silhouette and multi-subsample ARI.</p><p>Low silhouette matches the continuous t-SNE distribution — topic boundaries are inherently fuzzy; ARI measures clustering consistency across subsamples.</p>']
     },
     'ask-box': {
       zh: ['智能问答怎么问', '<p>直接输入问题，或点上方三个示例。系统先从真实主题簇与证据中检索，再生成<b>带溯源的回答</b>。</p><p>不配 API Key 时使用离线检索，回答会列出依据编号；配置模型后会基于这些真实依据生成更自然的中文回答，但不会编造数据。</p>'],

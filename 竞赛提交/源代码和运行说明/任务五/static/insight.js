@@ -82,7 +82,7 @@
       if (c2) c2.setOption({
         backgroundColor: 'transparent',
         tooltip: { trigger: 'item', formatter: (p) => `${p.seriesName}<br/>${p.value}%` },
-        legend: { bottom: 2, itemWidth: 11, itemHeight: 7, textStyle: { fontSize: 10, color: '#64748b' } },
+        legend: { bottom: 2, itemWidth: 11, itemHeight: 7, textStyle: { fontSize: 10, color: '#3f556b' } },
         series: [
           { name: T('机会率'), type: 'pie', radius: ['72%', '88%'], center: ['50%', '44%'], silent: true,
             label: { show: false }, labelLine: { show: false },
@@ -95,41 +95,41 @@
           { name: T('高价值方向'), type: 'pie', radius: ['30%', '46%'], center: ['50%', '44%'],
             label: { show: true, position: 'center', formatter: () => `{a|${oppRate}%}\n{b|${T('机会占比')}}`,
               rich: { a: { fontSize: 26, fontWeight: 700, color: '#0f766e', lineHeight: 32 },
-                      b: { fontSize: 10, color: '#64748b' } } },
+                      b: { fontSize: 10, color: '#3f556b' } } },
             data: [{ value: valRate, itemStyle: { color: '#ea580c' } },
                    { value: 100 - valRate, itemStyle: { color: '#e8eef4' } }] },
         ],
       });
 
-      const c3 = mk('insSourcePie'); if (c3) c3.setOption(pieOption(T('来源'), d.source_share));
-      const c4 = mk('insFuncPie'); if (c4) c4.setOption(pieOption(T('功能类别'), d.func_share));
-      const c5 = mk('insIndPie'); if (c5) c5.setOption(pieOption(T('所属行业'), d.industry_share));
-
-      const c6 = mk('insConf'); if (c6) c6.setOption({
-        color: ['#4F81BD'],
-        tooltip: { trigger: 'axis' },
-        xAxis: { type: 'category', data: d.confidence_hist.map((x) => x.bucket) },
-        yAxis: { type: 'value' },
-        series: [{ type: 'bar', data: d.confidence_hist.map((x) => x.count), barWidth: '60%' }],
-      });
-
+      // 价值分类排序清爽版：左侧只显示簇号，名称放入 tooltip，避免堆叠拥挤
+      const c8 = mk('insValueRank'); if (c8) {
+        const vt = (d.value_top || []).slice().reverse();
+        c8.setOption({
+          backgroundColor: 'transparent',
+          tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' },
+            formatter: (ps) => { const x = vt[ps[0].dataIndex]; return '<b>' + x.cid + '</b> ' + (x.name || '') + '<br/>' + T('价值分') + '：' + x.score; } },
+          grid: { left: 54, right: 54, top: 12, bottom: 24 },
+          xAxis: { type: 'value', max: 75, axisLabel: { color: '#33465c' }, splitLine: { lineStyle: { color: '#eef2f7' } } },
+          yAxis: { type: 'category', data: vt.map((x) => x.cid),
+                   axisLabel: { fontSize: 11, color: '#22354a', fontWeight: 600, margin: 12 },
+                   axisTick: { show: false }, axisLine: { lineStyle: { color: '#dbe5ee' } } },
+          series: [{ type: 'bar', data: vt.map((x, i) => ({
+                      value: x.score,
+                      itemStyle: { color: i >= vt.length - 3 ? '#2E5C8A' : i >= vt.length - 6 ? '#4F81BD' : '#9DB6CC',
+                                   borderRadius: [0, 4, 4, 0] } })),
+                    barWidth: '58%',
+                    label: { show: true, position: 'right', fontSize: 11, color: '#22354a', fontWeight: 600,
+                             formatter: (p) => p.value.toFixed(1) } }],
+        });
+      }
       const c7 = mk('insBatchBar'); if (c7) c7.setOption({
         color: ['#3F9DB3'],
         tooltip: { trigger: 'axis' },
+        grid: { left: 42, right: 16, top: 14, bottom: 28 },
         xAxis: { type: 'category', data: d.opp_by_batch.map((x) => x.batch) },
         yAxis: { type: 'value' },
         series: [{ type: 'bar', data: d.opp_by_batch.map((x) => x.opps), barWidth: '55%',
-                  label: { show: true, position: 'top', fontSize: 10 } }],
-      });
-
-      const vt = d.value_top.slice().reverse();
-      const c8 = mk('insValueBar'); if (c8) c8.setOption({
-        color: ['#7BA24A'],
-        tooltip: { trigger: 'axis' },
-        grid: { left: 108, right: 28 },
-        xAxis: { type: 'value' },
-        yAxis: { type: 'category', data: vt.map((x) => x.cid + ' ' + (x.name || '').slice(0, 8)), axisLabel: { fontSize: 10 } },
-        series: [{ type: 'bar', data: vt.map((x) => x.score), label: { show: true, position: 'right', fontSize: 10 } }],
+                  label: { show: true, position: 'top', fontSize: 10, color: '#33465c' } }],
       });
     } catch (e) {
       const box = el('insFunnel');

@@ -117,6 +117,8 @@
   }
 
   function initCharts() {
+    // 概览已改为论文级静态图（点击放大），原来的 ECharts 容器已移除
+    if (!el('chartRank')) return;
     if (state.chartsReady || typeof echarts === 'undefined' || !state.clusters.length) return;
     state.chartsReady = true;
     const cs = state.clusters;
@@ -321,7 +323,7 @@
         '<table class="mini-table"><thead><tr><th style="width:92px">' + T('编号') + '</th><th>' + T('标题') + '</th>' +
         '<th style="width:80px">' + T('来源') + '</th><th style="width:56px">' + T('热度') + '</th></tr></thead><tbody>' + ev + '</tbody></table>' +
         '<div class="sec-t">' + T('评分解释') + '</div>' +
-        '<p style="font-size:12px;color:#5b6b7d;line-height:1.8">' +
+        '<p style="font-size:12px;color:#33465c;line-height:1.8">' +
         T('多源指向度 = 100 × min(1, 来源数/14)：覆盖来源种类越多，需求越可信；') + '<br/>' +
         T('记录规模 = 100 × min(1, 簇内记录数/100)：固定基准，跨批可比；') + '<br/>' +
         T('商业信号 = 0.6×生均互动热度 + 0.4×需求置信度。') + '</p>';
@@ -408,9 +410,9 @@
         tr.innerHTML =
           '<td>' + p.id + '</td><td><b>' + p.cid + '</b></td><td>' + esc(p.cluster_name) + '</td>' +
           '<td><span class="tag">' + modeLabel + '</span></td>' +
-          '<td style="font-size:11px;color:#6b7c90">' + esc(p.model) + '</td>' +
+          '<td style="font-size:11px;color:#3f556b">' + esc(p.model) + '</td>' +
           '<td>' + fmt(p.chars) + '</td><td>' + fmt(p.tokens) + '</td>' +
-          '<td style="font-size:11px;color:#6b7c90">' + p.created_at + '</td>' +
+          '<td style="font-size:11px;color:#3f556b">' + p.created_at + '</td>' +
           '<td><button class="btn mini ghost" data-act="view" data-id="' + p.id + '">' + T('预览') + '</button> ' +
           '<button class="btn mini ghost" data-act="md" data-id="' + p.id + '">MD</button> ' +
           '<button class="btn mini ghost" data-act="docx" data-id="' + p.id + '">Word</button></td>';
@@ -466,7 +468,7 @@
 
   el('btnTest').addEventListener('click', async () => {
     el('testResult').textContent = T('测试中…');
-    el('testResult').style.color = '#6b7c90';
+    el('testResult').style.color = '#3f556b';
     try {
       const r = await api('/api/test', { method: 'POST', body: '{}' });
       el('testResult').textContent = (r.ok ? '✓ ' : '✗ ') + r.message + '（' + r.ms + ' ms）';
@@ -487,6 +489,29 @@
     if (currentPage === 'library') loadLibrary();
     if (currentPage === 'overview') { disposeCharts(); initCharts(); setTimeout(resizeCharts, 80); }
   });
+
+  /* ---------------- 论文图放大预览 ---------------- */
+  (function bindLightbox() {
+    const box = el('figLightbox');
+    if (!box) return;
+    const img = el('lbImg'), cap = el('lbCap'), close = el('lbClose');
+    document.addEventListener('click', (e) => {
+      const card = e.target.closest('.paper-figure');
+      if (!card) return;
+      // 帮助按钮不触发放大
+      if (e.target.closest('.help-btn')) return;
+      const zoom = card.getAttribute('data-zoom');
+      if (!zoom) return;
+      img.src = '/static/' + zoom;
+      img.alt = card.getAttribute('data-cap') || '';
+      cap.textContent = card.getAttribute('data-cap') || '';
+      box.classList.add('open');
+    });
+    const hide = () => { box.classList.remove('open'); img.src = ''; };
+    close.addEventListener('click', hide);
+    box.addEventListener('click', (e) => { if (e.target === box || e.target.tagName === 'FIGURE') hide(); });
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && box.classList.contains('open')) hide(); });
+  })();
 
   /* ---------------- 启动 ---------------- */
   async function boot() {
